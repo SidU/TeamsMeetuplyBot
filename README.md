@@ -1,5 +1,5 @@
-# TeamsMeetuplyBot 🤖
-Meetuply bot is an open-source bot for Microsoft Teams that helps the whole team get closer by pairing members up every week at random, to meet for coffee, burgers, pizza, or a walk around the block.
+# Meetuply 🤝🤖
+Meetuply is an open-source bot for Microsoft Teams that helps the whole team get closer by pairing members up every week at random, to meet for coffee, burgers, pizza, or a walk around the block.
 
 ![Meetuply pair up notification](MeetuplyPairupNotification.png)
 
