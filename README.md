@@ -12,7 +12,7 @@ The source for the bot is available under [MIT license](LICENSE) and demonstrate
 * How to send [Adaptive Cards](https://docs.microsoft.com/en-us/adaptive-cards/getting-started/bots) from your bot?
 * How to retrieve information about a team?
 
-# Setting up
+# Setting up ⚙
 
 ## Setting up the bot
 * Clone this repo.
@@ -46,7 +46,7 @@ Publish your bot to Azure from Visual Studio and paste the URL of the newly crea
 * Unzip and open manifest.json file. Replace `ADD_BOT_APP_ID_HERE` with the Application ID you received during setting up your bot.
 * Select all files in the current folder of the manifest (there're 3 of them in there), and Compress again.
 
-# Questions / Issues / Feedback
+# Questions ❓ / Issues 🙋‍♂️ / Feedback 🗨
 Post [here](https://github.com/siduppal/TeamsMeetuplyBot/issues).
 
 Contributions are welcome! 👏
