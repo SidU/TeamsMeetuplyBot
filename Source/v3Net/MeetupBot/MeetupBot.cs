@@ -32,15 +32,22 @@
 
             foreach (var team in teams)
             {
-                var optedInUsers = await GetOptedInUsers(team);
-
-                var teamName = await GetTeamNameAsync(team.ServiceUrl, team.TeamId);
-                
-                foreach (var pair in MakePairs(optedInUsers).Take(maxPairUpsPerTeam))
+                try
                 {
-                    await NotifyPair(team.ServiceUrl, team.TenantId, teamName, pair);
+                    var optedInUsers = await GetOptedInUsers(team);
 
-                    countPairsNotified++;
+                    var teamName = await GetTeamNameAsync(team.ServiceUrl, team.TeamId);
+
+                    foreach (var pair in MakePairs(optedInUsers).Take(maxPairUpsPerTeam))
+                    {
+                        await NotifyPair(team.ServiceUrl, team.TenantId, teamName, pair);
+
+                        countPairsNotified++;
+                    }
+                }
+                catch (UnauthorizedAccessException uae)
+                {
+                    System.Diagnostics.Trace.TraceError($"Failed to process a team: {team.ToString()} due to error {uae.ToString()}");
                 }
             }
 
