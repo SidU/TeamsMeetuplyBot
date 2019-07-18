@@ -1,4 +1,4 @@
-## Step 1. Create a new team for Meetuply 
+## 1. Create a new team for Meetuply 
 
 While it might be tempting to install Meetuply in an existing team, we recommend creating a separate team. This approach has several benefits: It allows people to opt-in to pairings. It keeps day-to-day work separate from Meetuply goings-on. Lastly, it allows members to easily leave if they find it a distraction. 
 
