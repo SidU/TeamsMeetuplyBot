@@ -180,7 +180,6 @@
     <Content Include="packages.config" />
     <Content Include="Helpers\AdaptiveCards\PairUpNotificationAdaptiveCard.json" />
     <Content Include="Helpers\AdaptiveCards\WelcomeNewMemberCard.json" />
-    <None Include="Properties\PublishProfiles\MeetupBot20181012040448 - Web Deploy.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -196,6 +195,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

@@ -19,7 +19,7 @@ The source for the bot is available under [MIT license](LICENSE) and demonstrate
 * Open MeetupBot.sln file in Visual Studio.
 * Open Web.config file and update it as follows:
   * Use your web-browser to register [a new bot for Teams](https://dev.botframework.com/bots/new).  
-  * Replace `ADD_BOT_APP_ID_HERE` with the Application ID you received while registering your bot.
+  * Replace `ADD_BOT_APP_ID_HERE` and `ADD_BOT_ID_HERE` with the Application ID you received while registering your bot.
   * Copy the Application Secret, and replace `ADD_BOT_APP_SECRET_HERE` in Web.config with this value.
 * Use the following PowerShell command to create a new Guid: `[guid]::NewGuid()`.
   * Copy this Guid value and paste it into your Web.config for `CHOOSE_A_KEY_HERE`.
@@ -35,10 +35,12 @@ The source for the bot is available under [MIT license](LICENSE) and demonstrate
 * Copy the Cosmos DB key value and paste it into Web.config to replace `ADD_COSMOS_DB_KEY_HERE`.
 
 ## Publish your bot to Azure
-Publish your bot to Azure from Visual Studio and paste the URL of the newly created service in the `Messaging endpoint` field in the [Bot Framework Portal](https://dev.botframework.com) configuration for yout bot. Just suffix it with /api/messages.
+Publish your bot to an Azure App Service from Visual Studio. Paste the URL of the newly created service in the `Messaging endpoint` field in the [Bot Framework Portal](https://dev.botframework.com) configuration for yout bot. Just suffix it with /api/messages.
 
 ## Setup the Scheduler job to periodically pair up people
-* Set it up to run every Monday at 10am and make a HTTP GET against `https://<your_bot>.azurewebsites.net/api/processnow/<key>`.
+* Find your App Service in the Azure Portal and go to the WebJobs tab.
+* Create a WebJob to trigger each Monday morning at 10 am (CRON expression: 0 0 18 * * Mon).
+* For the file upload, zip a command line tool (or similar - you can create a command line project from VS and build to get an exe file) that makes a HTTP GET request against `https://<your_bot>.azurewebsites.net/api/processnow/<key>`.
 * Replace `<key>` with the Guid you created above and pasted for `CHOOSE_A_KEY_HERE`.
 
 ## Update the manifest and sideload!
