@@ -38,10 +38,9 @@ The source for the bot is available under [MIT license](LICENSE) and demonstrate
 Publish your bot to an Azure App Service from Visual Studio. Paste the URL of the newly created service in the `Messaging endpoint` field in the [Bot Framework Portal](https://dev.botframework.com) configuration for yout bot. Just suffix it with /api/messages.
 
 ## Setup the Scheduler job to periodically pair up people
+* Open the included TriggerWebJob.sln. Update Program.cs with your app's url and replace `<key>` with the Guid you created above and pasted for `CHOOSE_A_KEY_HERE`. Build, and zip the folder containing the exe (under bin/debug).
 * Find your App Service in the Azure Portal and go to the WebJobs tab.
 * Create a WebJob to trigger each Monday morning at 10 am (CRON expression: 0 0 18 * * Mon).
-* For the file upload, zip a command line tool (or similar - you can create a command line project from VS and build to get an exe file) that makes a HTTP GET request against `https://<your_bot>.azurewebsites.net/api/processnow/<key>`.
-* Replace `<key>` with the Guid you created above and pasted for `CHOOSE_A_KEY_HERE`.
 
 ## Update the manifest and sideload!
 * Download the [Teams app manifest file for Meetuply](manifest/Meetuply.zip) from this repo.
