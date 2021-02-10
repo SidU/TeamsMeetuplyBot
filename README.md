@@ -21,6 +21,7 @@ The source for the bot is available under [MIT license](LICENSE) and demonstrate
   * Use your web-browser to register [a new bot for Teams](https://dev.botframework.com/bots/new).  
   * Replace `ADD_BOT_APP_ID_HERE` and `ADD_BOT_ID_HERE` with the Application ID you received while registering your bot.
   * Copy the Application Secret, and replace `ADD_BOT_APP_SECRET_HERE` in Web.config with this value.
+* In the bot portal (after you register your bot), add Teams as a Channel.
 * Use the following PowerShell command to create a new Guid: `[guid]::NewGuid()`.
   * Copy this Guid value and paste it into your Web.config for `CHOOSE_A_KEY_HERE`.
   
