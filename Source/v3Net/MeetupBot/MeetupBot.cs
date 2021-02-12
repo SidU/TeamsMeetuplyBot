@@ -195,8 +195,9 @@
             foreach (var member in members)
             {
                 var optInStatus = MeetupBotDataProvider.GetUserOptInStatus(teamInfo.TenantId, member.ObjectId);
+                var isBot = string.IsNullOrEmpty(member.Surname);
 
-                if (optInStatus == null || optInStatus.OptedIn)
+                if ((optInStatus == null || optInStatus.OptedIn) && !isBot)
                 {
                     optedInUsers.Add(member);
                 }

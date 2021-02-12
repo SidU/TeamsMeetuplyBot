@@ -154,7 +154,11 @@
             if (existingDoc != null)
             {
                 // update
-                var response = await documentClient.DeleteDocumentAsync(existingDoc.SelfLink);
+                var options = new RequestOptions()
+                {
+                    PartitionKey = new Microsoft.Azure.Documents.PartitionKey(obj.TenantId)
+                };
+                var response = await documentClient.DeleteDocumentAsync(existingDoc.SelfLink, options);
             }
             else
             {
