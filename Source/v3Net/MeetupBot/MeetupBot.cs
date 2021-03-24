@@ -39,7 +39,7 @@
 
                     var teamName = await GetTeamNameAsync(team.ServiceUrl, team.TeamId);
 
-                    foreach (var pair in MakePairs(optedInUsers).Take(maxPairUpsPerTeam))
+                    foreach (var pair in MakePairs(optedInUsers, optInStatuses).Take(maxPairUpsPerTeam))
                     {
                         await NotifyPair(team.ServiceUrl, team.TenantId, teamName, pair);
                         await MeetupBotDataProvider.StorePairup(team.TenantId, optInStatuses, pair.Item1.ObjectId, pair.Item2.ObjectId);
@@ -207,15 +207,35 @@
             return optedInUsers;
         }
 
-        private static List<Tuple<TeamsChannelAccount, TeamsChannelAccount>> MakePairs(List<TeamsChannelAccount> users)
+        private static List<Tuple<TeamsChannelAccount, TeamsChannelAccount>> MakePairs(List<TeamsChannelAccount> users, Dictionary<string, UserOptInInfo> optInInfo)
         {
             var pairs = new List<Tuple<TeamsChannelAccount, TeamsChannelAccount>>();
 
             Randomize<TeamsChannelAccount>(users);
 
-            for (int i = 0; i < users.Count - 1; i += 2)
+            while (users.Count > 1)
             {
-                pairs.Add(new Tuple<TeamsChannelAccount, TeamsChannelAccount>(users[i], users[i + 1]));
+                TeamsChannelAccount user1 = users[0];
+                optInInfo.TryGetValue(user1.ObjectId, out var user1OptIn);
+                TeamsChannelAccount user2 = null;
+                int pointer = 1;
+                // Find the first person they haven't been paired with recently.
+                while (user2 == null && pointer < users.Count)
+                {
+                    if (user1OptIn == null || !user1OptIn.RecentPairUps.Contains(users[pointer].ObjectId))
+                    {
+                        user2 = users[pointer];
+                    }
+                    pointer++;
+                }
+
+                // Pair these two and remove them from the people to pair. If we didn't find someone to pair user1 with, give up on them for this week.
+                if (user2 != null)
+                {
+                    pairs.Add(new Tuple<TeamsChannelAccount, TeamsChannelAccount>(user1, user2));
+                    users.Remove(user2);
+                }
+                users.Remove(user1);
             }
             
             return pairs;
