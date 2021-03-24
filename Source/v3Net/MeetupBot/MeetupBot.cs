@@ -207,7 +207,25 @@
             return optedInUsers;
         }
 
-        private static List<Tuple<TeamsChannelAccount, TeamsChannelAccount>> MakePairs(List<TeamsChannelAccount> users, Dictionary<string, UserOptInInfo> optInInfo)
+        private static List<Tuple<TeamsChannelAccount, TeamsChannelAccount>> MakePairs(List<TeamsChannelAccount> incomingUsers, Dictionary<string, UserOptInInfo> optInInfo)
+        {
+            int attempts = 0;
+            while (attempts < 5)
+            {
+                attempts++;
+                // Deep copy the users so we can mess with the list
+                var users = JsonConvert.DeserializeObject<List<TeamsChannelAccount>>(JsonConvert.SerializeObject(incomingUsers));
+                var pairs = MakePairsInternal(users, optInInfo);
+                if (pairs != null)
+                {
+                    return pairs;
+                }
+            }
+
+            return MakePairsInternal(incomingUsers, optInInfo, canTryAgain: false);
+        }
+
+        private static List<Tuple<TeamsChannelAccount, TeamsChannelAccount>> MakePairsInternal(List<TeamsChannelAccount> users, Dictionary<string, UserOptInInfo> optInInfo, bool canTryAgain = true)
         {
             var pairs = new List<Tuple<TeamsChannelAccount, TeamsChannelAccount>>();
 
@@ -234,6 +252,11 @@
                 {
                     pairs.Add(new Tuple<TeamsChannelAccount, TeamsChannelAccount>(user1, user2));
                     users.Remove(user2);
+                }
+                else if (canTryAgain)
+                {
+                    // Didn't find anyone to pair them with. Try again.
+                    return null;
                 }
                 users.Remove(user1);
             }
