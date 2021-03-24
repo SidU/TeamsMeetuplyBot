@@ -37,7 +37,7 @@
     {
       "type": "Action.OpenUrl",
       "title": "Chat with %matchedPerson%",
-      "url": "https://teams.microsoft.com/l/chat/0/0?users=%personUpn%&message=👋Hi%20there%20"
+      "url": "https://teams.microsoft.com/l/chat/0/0?users=%personUpn%"
     },
     {
       "type": "Action.Submit",
