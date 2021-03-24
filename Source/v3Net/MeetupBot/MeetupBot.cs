@@ -34,13 +34,15 @@
             {
                 try
                 {
-                    var optedInUsers = await GetOptedInUsers(team);
+                    var optInStatuses = await MeetupBotDataProvider.GetUserOptInStatusesAsync(team.TenantId);
+                    var optedInUsers = await GetOptedInUsers(team, optInStatuses);
 
                     var teamName = await GetTeamNameAsync(team.ServiceUrl, team.TeamId);
 
                     foreach (var pair in MakePairs(optedInUsers).Take(maxPairUpsPerTeam))
                     {
                         await NotifyPair(team.ServiceUrl, team.TenantId, teamName, pair);
+                        await MeetupBotDataProvider.StorePairup(team.TenantId, optInStatuses, pair.Item1.ObjectId, pair.Item2.ObjectId);
 
                         countPairsNotified++;
                     }
@@ -66,7 +68,7 @@
             }
         }
 
-        private static async Task NotifyPair(string serviceUrl, string tenantId, string teamName, Tuple<ChannelAccount, ChannelAccount> pair)
+        private static async Task NotifyPair(string serviceUrl, string tenantId, string teamName, Tuple<TeamsChannelAccount, TeamsChannelAccount> pair)
         {
             var teamsPerson1 = pair.Item1.AsTeamsChannelAccount();
             var teamsPerson2 = pair.Item2.AsTeamsChannelAccount();
@@ -186,15 +188,15 @@
             }
         }
 
-        private static async Task<List<ChannelAccount>> GetOptedInUsers(TeamInstallInfo teamInfo)
+        private static async Task<List<TeamsChannelAccount>> GetOptedInUsers(TeamInstallInfo teamInfo, Dictionary<string, UserOptInInfo> optInInfo)
         {
-            var optedInUsers = new List<ChannelAccount>();
+            var optedInUsers = new List<TeamsChannelAccount>();
 
             var members = await GetTeamMembers(teamInfo.ServiceUrl, teamInfo.TeamId, teamInfo.TenantId);
 
             foreach (var member in members)
             {
-                var optInStatus = MeetupBotDataProvider.GetUserOptInStatus(teamInfo.TenantId, member.ObjectId);
+                optInInfo.TryGetValue(member.ObjectId, out UserOptInInfo optInStatus);
 
                 if (optInStatus == null || optInStatus.OptedIn)
                 {
@@ -203,18 +205,17 @@
             }
 
             return optedInUsers;
-            
         }
 
-        private static List<Tuple<ChannelAccount, ChannelAccount>> MakePairs(List<ChannelAccount> users)
+        private static List<Tuple<TeamsChannelAccount, TeamsChannelAccount>> MakePairs(List<TeamsChannelAccount> users)
         {
-            var pairs = new List<Tuple<ChannelAccount, ChannelAccount>>();
+            var pairs = new List<Tuple<TeamsChannelAccount, TeamsChannelAccount>>();
 
-            Randomize<ChannelAccount>(users);
+            Randomize<TeamsChannelAccount>(users);
 
             for (int i = 0; i < users.Count - 1; i += 2)
             {
-                pairs.Add(new Tuple<ChannelAccount, ChannelAccount>(users[i], users[i + 1]));
+                pairs.Add(new Tuple<TeamsChannelAccount, TeamsChannelAccount>(users[i], users[i + 1]));
             }
             
             return pairs;

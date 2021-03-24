@@ -99,6 +99,29 @@
             return match.FirstOrDefault();
         }
 
+        public static async Task<Dictionary<string, UserOptInInfo>> GetUserOptInStatusesAsync(string tenantId)
+        {
+            InitDatabase();
+
+            var databaseName = CloudConfigurationManager.GetSetting("CosmosDBDatabaseName");
+            var collectionName = CloudConfigurationManager.GetSetting("CosmosCollectionUsers");
+
+            // Set some common query options
+            FeedOptions queryOptions = new FeedOptions { MaxItemCount = -1 };
+
+            // Find matching activities
+            var lookupQuery = documentClient.CreateDocumentQuery<UserOptInInfo>(
+                UriFactory.CreateDocumentCollectionUri(databaseName, collectionName), queryOptions)
+                .Where(f => f.TenantId == tenantId);
+
+            var result = new Dictionary<string, UserOptInInfo>();
+            foreach (var status in lookupQuery)
+            {
+                result.Add(status.UserId, status);
+            }
+            return result;
+        }
+
         public static async Task<UserOptInInfo> SetUserOptInStatus(string tenantId, string userId, bool optedIn, string serviceUrl)
         {
             InitDatabase();
@@ -107,8 +130,7 @@
             {
                 TenantId = tenantId,
                 UserId = userId,
-                OptedIn = optedIn,
-                ServiceUrl = serviceUrl
+                OptedIn = optedIn
             };
 
             obj = await StoreUserOptInStatus(obj);
@@ -116,24 +138,53 @@
             return obj;
         }
        
-        public static async Task<bool> StorePairup(string tenantId, string user1Id, string user2Id)
+        public static async Task<bool> StorePairup(string tenantId, Dictionary<string, UserOptInInfo> userOptInInfo, string userId1, string userId2)
         {
             InitDatabase();
 
             var maxPairUpHistory = Convert.ToInt64(CloudConfigurationManager.GetSetting("MaxPairUpHistory"));
 
-            var user1Info = GetUserOptInStatus(tenantId, user1Id);
-            var user2Info = GetUserOptInStatus(tenantId, user2Id);
+            var user1Info = new UserOptInInfo()
+            {
+                TenantId = tenantId,
+                UserId = userId1,
+                OptedIn = true,
+            };
+            if (userOptInInfo.TryGetValue(userId1, out UserOptInInfo initialUser1Info))
+            {
+                user1Info.RecentPairUps = initialUser1Info.RecentPairUps;
+                user1Info.Id = initialUser1Info.Id;
+            }
+            else
+            {
+                user1Info.RecentPairUps = new List<string>();
+            }
+            
+            var user2Info = new UserOptInInfo()
+            {
+                TenantId = tenantId,
+                UserId = userId2,
+                OptedIn = true,
+            };
+            if (userOptInInfo.TryGetValue(userId2, out UserOptInInfo initialUser2Info))
+            {
+                user2Info.RecentPairUps = initialUser2Info.RecentPairUps;
+                user2Info.Id = initialUser2Info.Id;
+            }
+            else
+            {
+                user2Info.RecentPairUps = new List<string>();
+            }
 
-            user1Info.RecentPairUps.Add(user2Info);
-            if (user1Info.RecentPairUps.Count >= maxPairUpHistory) {
+            user1Info.RecentPairUps.Add(user2Info.UserId);
+            if (user1Info.RecentPairUps.Count > maxPairUpHistory) {
                 user1Info.RecentPairUps.RemoveAt(0);
             }
 
             await StoreUserOptInStatus(user1Info);
 
-            user2Info.RecentPairUps.Add(user1Info);
-            if (user2Info.RecentPairUps.Count >= maxPairUpHistory) {
+            user2Info.RecentPairUps.Add(user1Info.UserId);
+            if (user2Info.RecentPairUps.Count > maxPairUpHistory) {
                 user2Info.RecentPairUps.RemoveAt(0);
             }
 
@@ -149,10 +200,9 @@
             var databaseName = CloudConfigurationManager.GetSetting("CosmosDBDatabaseName");
             var collectionName = CloudConfigurationManager.GetSetting("CosmosCollectionUsers");
 
-            var existingDoc = GetUserOptInStatus(obj.TenantId, obj.UserId);
-
-            if (existingDoc != null)
+            if (!obj.OptedIn)
             {
+                var existingDoc = GetUserOptInStatus(obj.TenantId, obj.UserId);
                 // update
                 var response = await documentClient.DeleteDocumentAsync(existingDoc.SelfLink);
             }
@@ -160,9 +210,8 @@
             {
                 // Insert
                 var response = await documentClient.UpsertDocumentAsync(
-                UriFactory.CreateDocumentCollectionUri(databaseName, collectionName),
-                obj);
-
+                    UriFactory.CreateDocumentCollectionUri(databaseName, collectionName),
+                    obj);
             }
             
             return obj;
