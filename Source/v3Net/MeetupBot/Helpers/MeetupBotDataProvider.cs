@@ -181,14 +181,17 @@
                 user1Info.RecentPairUps.RemoveAt(0);
             }
 
-            await StoreUserOptInStatus(user1Info);
-
             user2Info.RecentPairUps.Add(user1Info.UserId);
             if (user2Info.RecentPairUps.Count > maxPairUpHistory) {
                 user2Info.RecentPairUps.RemoveAt(0);
             }
 
-            await StoreUserOptInStatus(user2Info);
+            var isTesting = Boolean.Parse(CloudConfigurationManager.GetSetting("Testing"));
+            if (!isTesting)
+            {
+                await StoreUserOptInStatus(user1Info);
+                await StoreUserOptInStatus(user2Info);
+            }
 
             return true;
         }
