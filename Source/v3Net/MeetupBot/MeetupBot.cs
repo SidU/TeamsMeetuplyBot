@@ -196,9 +196,10 @@
 
             foreach (var member in members)
             {
+                var isBot = string.IsNullOrEmpty(member.Surname);
                 optInInfo.TryGetValue(member.ObjectId, out UserOptInInfo optInStatus);
 
-                if (optInStatus == null || optInStatus.OptedIn)
+                if ((optInStatus == null || optInStatus.OptedIn) && !isBot)
                 {
                     optedInUsers.Add(member);
                 }

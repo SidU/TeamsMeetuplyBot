@@ -1,0 +1,42 @@
+{
+    "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.3/MicrosoftTeams.schema.json",
+    "manifestVersion": "1.3",
+    "version": "1.0.0",
+    "id": "71b3f071-0fc7-4ea7-8d61-d8c80f7141d2",
+    "packageName": "com.microsoft.teams.meetup",
+    "developer": {
+        "name": "Meetuply",
+        "websiteUrl": "https://teams.microsoft.com",
+        "privacyUrl": "https://teams.microsoft.com/privacy",
+        "termsOfUseUrl": "https://teams.microsoft.com/tos"
+    },
+    "icons": {
+        "color": "color.png",
+        "outline": "outline.png"
+    },
+    "name": {
+        "short": "Meetuply",
+        "full": "Learn about your team members"
+    },
+    "description": {
+        "short": "Meetuply",
+        "full": "Meetup bot"
+    },
+    "accentColor": "#FFFFFF",
+    "bots": [
+        {
+            "botId": "c457b63c-0a58-4270-8127-d65132ea26cb",
+            "scopes": [
+                "personal",
+                "team"
+            ],
+            "supportsFiles": false,
+            "isNotificationOnly": false
+        }
+    ],
+    "permissions": [
+        "identity",
+        "messageTeamMembers"
+    ],
+    "validDomains": []
+}

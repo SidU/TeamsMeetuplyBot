@@ -14,13 +14,20 @@ The source for the bot is available under [MIT license](LICENSE) and demonstrate
 
 # Setting up ⚙
 
-## Setting up the bot
+## Getting started
 * Clone this repo.
 * Open MeetupBot.sln file in Visual Studio.
+
+## Register your Teams app and bot
+* Open [App Studio](https://docs.microsoft.com/en-us/microsoftteams/platform/concepts/build-and-test/app-studio-overview) in Teams.
+* Go to the Maifest editor and create a new app.
+  * You just need to do the App details and Bots tabs.
+  * Use the checked in manifest (manifest/Meetuply/manifest.json) as a reference as needed, and use the icons checked in there.
+  * In the Bots tab, give your bot Personal and Team Scopes. Have it generate an "App password" and save that along with the bot's ID (these are actually an AAD app ID and secret they've generated for you).
+  * At the last step, download your app's zip file!
 * Open Web.config file and update it as follows:
-  * Use your web-browser to register [a new bot for Teams](https://dev.botframework.com/bots/new).  
-  * Replace `ADD_BOT_APP_ID_HERE` with the Application ID you received while registering your bot.
-  * Copy the Application Secret, and replace `ADD_BOT_APP_SECRET_HERE` in Web.config with this value.
+  * Replace `ADD_BOT_APP_ID_HERE` and `ADD_BOT_ID_HERE` with the Bot ID (i.e. AAD app ID) you received while registering your bot.
+  * Replace `ADD_BOT_APP_SECRET_HERE` with the app password.
 * Use the following PowerShell command to create a new Guid: `[guid]::NewGuid()`.
   * Copy this Guid value and paste it into your Web.config for `CHOOSE_A_KEY_HERE`.
   
@@ -35,16 +42,17 @@ The source for the bot is available under [MIT license](LICENSE) and demonstrate
 * Copy the Cosmos DB key value and paste it into Web.config to replace `ADD_COSMOS_DB_KEY_HERE`.
 
 ## Publish your bot to Azure
-Publish your bot to Azure from Visual Studio and paste the URL of the newly created service in the `Messaging endpoint` field in the [Bot Framework Portal](https://dev.botframework.com) configuration for yout bot. Just suffix it with /api/messages.
+* Publish your bot to an Azure App Service from Visual Studio.
+* Paste the URL of the newly created service in the `Messaging endpoint` field in the [Bot Framework Portal](https://dev.botframework.com/bots) configuration for yout bot. Just suffix it with /api/messages.
 
 ## Setup the Scheduler job to periodically pair up people
-* Set it up to run every Monday at 10am and make a HTTP GET against `https://<your_bot>.azurewebsites.net/api/processnow/<key>`.
-* Replace `<key>` with the Guid you created above and pasted for `CHOOSE_A_KEY_HERE`.
+* Open the included TriggerWebJob.sln. Update Program.cs with your app's url and replace `<key>` with the Guid you created above and pasted for `CHOOSE_A_KEY_HERE`. Build, and zip the folder containing the exe (under bin/debug).
+* Find your App Service in the Azure Portal and go to the WebJobs tab.
+* Create a WebJob to trigger each Monday morning at 10 am (CRON expression: 0 0 18 * * Mon).
+* [Enable Always On](https://docs.microsoft.com/en-us/azure/app-service/webjobs-create#webjob-types) on your App Service so that the trigger will work.
 
 ## Update the manifest and sideload!
-* Download the [Teams app manifest file for Meetuply](manifest/Meetuply.zip) from this repo.
-* Unzip and open manifest.json file. Replace `ADD_BOT_APP_ID_HERE` with the Application ID you received during setting up your bot.
-* Select all files in the current folder of the manifest (there're 3 of them in there), and Compress again.
+Navigate to the team you want to add this to, go to Manage team, Apps, and Upload a custom app. Use the zip file you downloaded while registering your app!
 
 # Questions ❓ / Issues 🙋‍♂️ / Feedback 🗨
 Post [here](https://github.com/siduppal/TeamsMeetuplyBot/issues).
