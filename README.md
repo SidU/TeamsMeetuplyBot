@@ -32,7 +32,7 @@ The source for the bot is available under [MIT license](LICENSE) and demonstrate
   * Copy this Guid value and paste it into your Web.config for `CHOOSE_A_KEY_HERE`.
   
 ## Setting up CosmosDB used by the bot to track which teams it has been added to, and which users have opted out
-* Go to [Azure Portal](https://portal.azure.com) and register Azure Cosmos DB Account.
+* Go to [Azure Portal](https://portal.azure.com) and register a new Azure Cosmos DB Account.
 * Choose "Core (SQL)" for API.
 * After your Azure Cosmos DB Account created, navigate to Data Explorer and click on New Container
 * Create a database with name `MeetupBotConfig`
@@ -41,7 +41,7 @@ The source for the bot is available under [MIT license](LICENSE) and demonstrate
   * `UsersOptInStatus` with partition-key as /tenantId.
 * Copy the Cosmos DB endpoint URL and paste it into Web.config to replace `ADD_COSMOS_DB_ENDPOINT_URL_HERE`.	
 * Copy the Cosmos DB key value and paste it into Web.config to replace `ADD_COSMOS_DB_KEY_HERE`.
-	* To get Cosmos DB EndPoint URI and Key, Navigatate to "Keys"
+	* To get Cosmos DB EndPoint URI and Key, navigate to "Keys"
 
 ## Publish your bot to Azure
 * Publish your bot to an Azure App Service from Visual Studio.
