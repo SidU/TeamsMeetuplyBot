@@ -203,23 +203,16 @@
             var databaseName = CloudConfigurationManager.GetSetting("CosmosDBDatabaseName");
             var collectionName = CloudConfigurationManager.GetSetting("CosmosCollectionUsers");
 
-            if (!obj.OptedIn)
+            var existingDoc = GetUserOptInStatus(obj.TenantId, obj.UserId);
+            if (existingDoc != null)
             {
-                var existingDoc = GetUserOptInStatus(obj.TenantId, obj.UserId);
-                // update
-                var options = new RequestOptions()
-                {
-                    PartitionKey = new Microsoft.Azure.Documents.PartitionKey(obj.TenantId)
-                };
-                var response = await documentClient.DeleteDocumentAsync(existingDoc.SelfLink, options);
+                // Overwrite the existing document
+                obj.Id = existingDoc.Id;
             }
-            else
-            {
-                // Insert
-                var response = await documentClient.UpsertDocumentAsync(
-                    UriFactory.CreateDocumentCollectionUri(databaseName, collectionName),
-                    obj);
-            }
+
+            await documentClient.UpsertDocumentAsync(
+                UriFactory.CreateDocumentCollectionUri(databaseName, collectionName),
+                obj);
             
             return obj;
         }
