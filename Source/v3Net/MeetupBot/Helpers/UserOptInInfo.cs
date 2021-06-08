@@ -15,10 +15,7 @@
         [JsonProperty("optedIn")]
         public bool OptedIn { get; set; }
 
-        [JsonProperty("serviceUrl")]
-        public string ServiceUrl { get; set; }
-
         [JsonProperty("recentPairups")]
-        public List<UserOptInInfo> RecentPairUps { get; set; }
+        public List<string> RecentPairUps { get; set; }
     }
 }
