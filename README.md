@@ -32,14 +32,16 @@ The source for the bot is available under [MIT license](LICENSE) and demonstrate
   * Copy this Guid value and paste it into your Web.config for `CHOOSE_A_KEY_HERE`.
   
 ## Setting up CosmosDB used by the bot to track which teams it has been added to, and which users have opted out
-* Go to [Azure Portal](https://portal.azure.com) and register a new Azure Cosmos DB database.
+* Go to [Azure Portal](https://portal.azure.com) and register a new Azure Cosmos DB Account.
 * Choose "Core (SQL)" for API.
+* After your Azure Cosmos DB Account created, navigate to Data Explorer and click on New Container
 * Create a database with name `MeetupBotConfig`
 * Create the following collections:
-  * `TeamsInstalled` with partition-key as teamId.
-  * `UsersOptInStatus` with partition-key as tenantId.
-* Copy the Cosmos DB endpoint URL and paste it into Web.config to replace `ADD_COSMOS_DB_ENDPOINT_URL_HERE`.
+  * `TeamsInstalled` with partition-key as /teamId.
+  * `UsersOptInStatus` with partition-key as /tenantId.
+* Copy the Cosmos DB endpoint URL and paste it into Web.config to replace `ADD_COSMOS_DB_ENDPOINT_URL_HERE`.	
 * Copy the Cosmos DB key value and paste it into Web.config to replace `ADD_COSMOS_DB_KEY_HERE`.
+	* To get Cosmos DB EndPoint URI and Key, navigate to "Keys"
 
 ## Publish your bot to Azure
 * Publish your bot to an Azure App Service from Visual Studio.
@@ -48,8 +50,9 @@ The source for the bot is available under [MIT license](LICENSE) and demonstrate
 ## Setup the Scheduler job to periodically pair up people
 * Open the included TriggerWebJob.sln. Update Program.cs with your app's url and replace `<key>` with the Guid you created above and pasted for `CHOOSE_A_KEY_HERE`. Build, and zip the folder containing the exe (under bin/debug).
 * Find your App Service in the Azure Portal and go to the WebJobs tab.
-* Create a WebJob to trigger each Monday morning at 10 am (CRON expression: 0 0 18 * * Mon).
+* Create a WebJob and upload the .zip folder containing the exe and select type as triggered each Monday morning at 10 am (CRON expression: 0 0 18 * * Mon).
 * [Enable Always On](https://docs.microsoft.com/en-us/azure/app-service/webjobs-create#webjob-types) on your App Service so that the trigger will work.
+	* Navigate to App Service --> Configuration --> General Settings
 
 ## Update the manifest and sideload!
 Navigate to the team you want to add this to, go to Manage team, Apps, and Upload a custom app. Use the zip file you downloaded while registering your app!
