@@ -241,7 +241,7 @@
                 // Find the first person they haven't been paired with recently.
                 while (user2 == null && pointer < users.Count)
                 {
-                    if (user1OptIn == null || user1OptIn.RecentPairUps?.Contains(users[pointer].ObjectId) == false)
+                    if (user1OptIn?.RecentPairUps == null || !user1OptIn.RecentPairUps.Contains(users[pointer].ObjectId))
                     {
                         user2 = users[pointer];
                     }
