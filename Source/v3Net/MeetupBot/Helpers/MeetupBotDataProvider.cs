@@ -130,7 +130,8 @@
             {
                 TenantId = tenantId,
                 UserId = userId,
-                OptedIn = optedIn
+                OptedIn = optedIn,
+                RecentPairUps = new List<string>()
             };
 
             obj = await StoreUserOptInStatus(obj);
@@ -152,7 +153,7 @@
             };
             if (userOptInInfo.TryGetValue(userId1, out UserOptInInfo initialUser1Info))
             {
-                user1Info.RecentPairUps = initialUser1Info.RecentPairUps;
+                user1Info.RecentPairUps = initialUser1Info.RecentPairUps ?? new List<string>();
                 user1Info.Id = initialUser1Info.Id;
             }
             else
@@ -168,7 +169,7 @@
             };
             if (userOptInInfo.TryGetValue(userId2, out UserOptInInfo initialUser2Info))
             {
-                user2Info.RecentPairUps = initialUser2Info.RecentPairUps;
+                user2Info.RecentPairUps = initialUser2Info.RecentPairUps ?? new List<string>();
                 user2Info.Id = initialUser2Info.Id;
             }
             else
