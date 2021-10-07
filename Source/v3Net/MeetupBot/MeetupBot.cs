@@ -148,7 +148,15 @@
                 if (! isTesting)
                 {
                     // shoot the activity over
-                    await connectorClient.Conversations.SendToConversationAsync(activity, response.Id);
+                    // added try catch because if user has set "Block conversations with bots"
+                    try
+                    {
+                        await connectorClient.Conversations.SendToConversationAsync(activity, response.Id);
+                    }
+                    catch (UnauthorizedAccessException uae)
+                    {
+                        System.Diagnostics.Trace.TraceError($"Failed to notify user due to error {uae.ToString()}");
+                    }
                 }
                 
             }
