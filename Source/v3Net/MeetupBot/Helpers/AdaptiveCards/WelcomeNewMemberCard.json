@@ -17,7 +17,7 @@
       "items": [
         {
           "type": "TextBlock",
-          "text": "I am Meetuply 🤖 and present in %team% team to help folks meet and bond with teammates. So every Monday @ 10 am 🕙, I will randomly match you to a new teammate. Oh btw, I am programmed to say that you can opt out anytime by leaving the team, but I seriously hope you never do that 🤞. Cheers! Until next time 👋",
+          "text": "I am Lets Meet Bot 🤖 and here to help you network with new people in your Organization. Every Month, I will randomly match you to a new colleague. Oh btw, I am programmed to say that you can opt out anytime by leaving the team, but I seriously hope you never do that 🤞. Cheers! Until next time 👋",
           "wrap": true
         }
       ]
