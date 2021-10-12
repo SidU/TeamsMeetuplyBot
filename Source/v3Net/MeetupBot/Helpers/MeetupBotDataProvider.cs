@@ -11,13 +11,13 @@
     {
         private static DocumentClient documentClient;
 
-        public static void InitDatabase()
+        public static async Task InitDatabaseAsync()
         {
             if (documentClient == null)
             {
                 var endpointUrl = CloudConfigurationManager.GetSetting("CosmosDBEndpointUrl");
-                var primaryKey = CloudConfigurationManager.GetSetting("CosmosDBKey");
-                
+                var secretName = CloudConfigurationManager.GetSetting("CosmosDBKeySecretName");
+                var primaryKey = await SecretsHelper.GetSecretAsync(secretName).ConfigureAwait(false);
 
                 documentClient = new DocumentClient(new Uri(endpointUrl), primaryKey);
             }
@@ -26,7 +26,7 @@
 
         public static async Task<TeamInstallInfo> SaveTeamInstallStatus(TeamInstallInfo team, bool installed)
         {
-            InitDatabase();
+            await InitDatabaseAsync().ConfigureAwait(false);
 
             var databaseName = CloudConfigurationManager.GetSetting("CosmosDBDatabaseName");
             var collectionName = CloudConfigurationManager.GetSetting("CosmosCollectionTeams");
@@ -60,9 +60,9 @@
             return team;
         }
 
-        public static List<TeamInstallInfo> GetInstalledTeams()
+        public static async Task<List<TeamInstallInfo>> GetInstalledTeamsAsync()
         {
-            InitDatabase();
+            await InitDatabaseAsync().ConfigureAwait(false);
 
             var databaseName = CloudConfigurationManager.GetSetting("CosmosDBDatabaseName");
             var collectionName = CloudConfigurationManager.GetSetting("CosmosCollectionTeams");
@@ -79,9 +79,9 @@
             return match;
         }
 
-        public static UserOptInInfo GetUserOptInStatus(string tenantId, string userId)
+        public static async Task<UserOptInInfo> GetUserOptInStatusAsync(string tenantId, string userId)
         {
-            InitDatabase();
+            await InitDatabaseAsync().ConfigureAwait(false);
 
             var databaseName = CloudConfigurationManager.GetSetting("CosmosDBDatabaseName");
             var collectionName = CloudConfigurationManager.GetSetting("CosmosCollectionUsers");
@@ -101,7 +101,7 @@
 
         public static async Task<Dictionary<string, UserOptInInfo>> GetUserOptInStatusesAsync(string tenantId)
         {
-            InitDatabase();
+            await InitDatabaseAsync().ConfigureAwait(false);
 
             var databaseName = CloudConfigurationManager.GetSetting("CosmosDBDatabaseName");
             var collectionName = CloudConfigurationManager.GetSetting("CosmosCollectionUsers");
@@ -124,7 +124,7 @@
 
         public static async Task<UserOptInInfo> SetUserOptInStatus(string tenantId, string userId, bool optedIn, string serviceUrl)
         {
-            InitDatabase();
+            await InitDatabaseAsync().ConfigureAwait(false);
 
             var obj = new UserOptInInfo()
             {
@@ -141,7 +141,7 @@
        
         public static async Task<bool> StorePairup(string tenantId, Dictionary<string, UserOptInInfo> userOptInInfo, string userId1, string userId2)
         {
-            InitDatabase();
+            await InitDatabaseAsync().ConfigureAwait(false);
 
             var maxPairUpHistory = Convert.ToInt64(CloudConfigurationManager.GetSetting("MaxPairUpHistory"));
 
@@ -203,12 +203,12 @@
 
         private static async Task<UserOptInInfo> StoreUserOptInStatus(UserOptInInfo obj)
         {
-            InitDatabase();
+            await InitDatabaseAsync().ConfigureAwait(false);
 
             var databaseName = CloudConfigurationManager.GetSetting("CosmosDBDatabaseName");
             var collectionName = CloudConfigurationManager.GetSetting("CosmosCollectionUsers");
 
-            var existingDoc = GetUserOptInStatus(obj.TenantId, obj.UserId);
+            var existingDoc = await GetUserOptInStatusAsync(obj.TenantId, obj.UserId).ConfigureAwait(false);
             if (existingDoc != null)
             {
                 // Overwrite the existing document

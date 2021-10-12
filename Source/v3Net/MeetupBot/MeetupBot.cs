@@ -25,7 +25,7 @@
             // Now notify each pair found in 1:1 and ask them to reach out to the other person
             // When contacting the user in 1:1, give them the button to opt-out.
 
-            var teams = MeetupBotDataProvider.GetInstalledTeams();
+            var teams = await MeetupBotDataProvider.GetInstalledTeamsAsync().ConfigureAwait(false);
 
             var countPairsNotified = 0;
             var maxPairUpsPerTeam = Convert.ToInt32(CloudConfigurationManager.GetSetting("MaxPairUpsPerTeam"));
