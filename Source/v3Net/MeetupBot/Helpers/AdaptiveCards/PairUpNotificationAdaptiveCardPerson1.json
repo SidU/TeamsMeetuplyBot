@@ -20,14 +20,14 @@
           "items": [
             {
               "type": "TextBlock",
-              "text": "I am a bot in _%team%_ program to help you connect with new people in your Organization every month. This month I have matched you with %matchedPerson% and sent a similar message to them. ",
+              "text": "I am _%team%_ bot 🤖 and here to help you connect with new people in your Organization every month. This month I have matched you with _%matchedPerson%_ and sent a similar message to them. ",
               "wrap": true
             }
           ]
         },
         {
           "type": "TextBlock",
-          "text": "Message %matchedPersonFirstName% and consider meeting up for a ☕ (coffee) or 🍕 (lunch)!",
+          "text": "I am nominating you to schedule time to meet with _%matchedPerson%_ for a ☕ (coffee) or 🍕 (lunch)! ",
           "wrap": true
         }
       ]

@@ -1,0 +1,51 @@
+﻿{
+  "type": "AdaptiveCard",
+  "body": [
+    {
+      "type": "Container",
+      "items": [
+        {
+          "type": "TextBlock",
+          "size": "Medium",
+          "weight": "Bolder",
+          "text": "👋 Hi %receiverName%"
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "items": [
+        {
+          "type": "Container",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "I am _%team%_ bot 🤖 and here to help you connect with new people in your Organization every month. This month I have matched you with %matchedPerson% and sent a similar message to them. ",
+              "wrap": true
+            }
+          ]
+        },
+        {
+          "type": "TextBlock",
+          "text": "Message %matchedPersonFirstName% and consider meeting up for a ☕ (coffee) or 🍕 (lunch)!",
+          "wrap": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "title": "Chat with %matchedPerson%",
+      "url": "https://teams.microsoft.com/l/chat/0/0?users=%personUpn%"
+    },
+    {
+      "type": "Action.Submit",
+      "title": "Opt out from future pair-ups",
+      "data": {
+        "optout": true
+      }
+    }
+  ],
+  "version": "1.0"
+}

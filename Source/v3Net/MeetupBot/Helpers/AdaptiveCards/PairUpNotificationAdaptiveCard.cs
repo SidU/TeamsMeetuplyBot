@@ -6,7 +6,7 @@
 
     public static class PairUpNotificationAdaptiveCard
     {
-        public static string GetCard(string teamName, string matchedPersonName, string matchedPersonFirstName, string receiverName, string personUpn)
+        public static string GetCard(bool isPerson1, string teamName, string matchedPersonName, string matchedPersonFirstName, string receiverName, string personUpn)
         {
             var variablesToValues = new Dictionary<string, string>()
             {
@@ -17,7 +17,8 @@
                 { "personUpn", personUpn }
             };
 
-            var cardJsonFilePath = HostingEnvironment.MapPath("~/Helpers/AdaptiveCards/PairUpNotificationAdaptiveCard.json");
+            var card = (isPerson1 == true) ? "PairUpNotificationAdaptiveCardPerson1.json" : "PairUpNotificationAdaptiveCardPerson2.json";
+            var cardJsonFilePath = HostingEnvironment.MapPath($"~/Helpers/AdaptiveCards/{card}");
             var cardTemplate = File.ReadAllText(cardJsonFilePath);
 
             var cardBody = cardTemplate;

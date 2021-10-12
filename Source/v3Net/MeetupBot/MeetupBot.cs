@@ -73,11 +73,12 @@
             var teamsPerson1 = pair.Item1.AsTeamsChannelAccount();
             var teamsPerson2 = pair.Item2.AsTeamsChannelAccount();
 
-            // Fill in person1's info in the card for person2
-            var cardForPerson2 = PairUpNotificationAdaptiveCard.GetCard(teamName, teamsPerson1.Name, teamsPerson1.GivenName, teamsPerson2.GivenName, teamsPerson1.UserPrincipalName);
-
             // Fill in person2's info in the card for person1
-            var cardForPerson1 = PairUpNotificationAdaptiveCard.GetCard(teamName, teamsPerson2.Name, teamsPerson2.GivenName, teamsPerson1.GivenName, teamsPerson2.UserPrincipalName);
+            // Also we will nominate person 1 to schedule the meeting. So we create a different card. 
+            var cardForPerson1 = PairUpNotificationAdaptiveCard.GetCard(isPerson1: true, teamName, teamsPerson2.Name, teamsPerson2.GivenName, teamsPerson1.GivenName, teamsPerson2.UserPrincipalName);
+
+            // Fill in person1's info in the card for person2
+            var cardForPerson2 = PairUpNotificationAdaptiveCard.GetCard(isPerson1: false, teamName, teamsPerson1.Name, teamsPerson1.GivenName, teamsPerson2.GivenName, teamsPerson1.UserPrincipalName);
 
             await NotifyUser(serviceUrl, cardForPerson1, teamsPerson1, tenantId);
             await NotifyUser(serviceUrl, cardForPerson2, teamsPerson2, tenantId);
