@@ -20,6 +20,8 @@
         /// </summary>
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
+            System.Diagnostics.Trace.TraceInformation($"Bot called Message Controller for Activity : {activity.Type}");
+
             if (activity.Type == ActivityTypes.Message)
             {
                 string replyText = null;

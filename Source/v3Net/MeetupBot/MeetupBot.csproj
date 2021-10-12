@@ -13,7 +13,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MeetupBot</RootNamespace>
     <AssemblyName>Teams Bot Application</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
     <IISExpressAnonymousAuthentication />
@@ -191,7 +191,6 @@
     <Content Include="packages.config" />
     <Content Include="Helpers\AdaptiveCards\PairUpNotificationAdaptiveCard.json" />
     <Content Include="Helpers\AdaptiveCards\WelcomeNewMemberCard.json" />
-    <None Include="Properties\PublishProfiles\AngoMeetupBot1 - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\MeetupBotAppService - Web Deploy.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
