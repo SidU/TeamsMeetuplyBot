@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace TriggerEDUChatRouletteBot
+namespace TriggerWebJob
 {
     class Program
     {

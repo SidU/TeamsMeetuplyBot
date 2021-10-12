@@ -233,8 +233,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
-    <Content Include="Helpers\AdaptiveCards\PairUpNotificationAdaptiveCard.json" />
+    <Content Include="Helpers\AdaptiveCards\PairUpNotificationAdaptiveCardPerson2.json" />
     <Content Include="Helpers\AdaptiveCards\WelcomeNewMemberCard.json" />
+    <Content Include="Helpers\AdaptiveCards\PairUpNotificationAdaptiveCardPerson1.json" />
     <None Include="Properties\PublishProfiles\MeetupBotAppService - Web Deploy.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>

@@ -1,11 +1,11 @@
 {
-    "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.3/MicrosoftTeams.schema.json",
-    "manifestVersion": "1.3",
+    "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.11/MicrosoftTeams.schema.json",
+    "manifestVersion": "1.11",
     "version": "1.0.0",
-    "id": "71b3f071-0fc7-4ea7-8d61-d8c80f7141d2",
-    "packageName": "com.microsoft.teams.meetup",
+    "id": "019094a6-0f9f-472f-88c9-352ee6f23d3c",
+    "packageName": "com.microsoft.teams.oxoletsmeet",
     "developer": {
-        "name": "Meetuply",
+        "name": "letsmeet",
         "websiteUrl": "https://teams.microsoft.com",
         "privacyUrl": "https://teams.microsoft.com/privacy",
         "termsOfUseUrl": "https://teams.microsoft.com/tos"
@@ -15,17 +15,31 @@
         "outline": "outline.png"
     },
     "name": {
-        "short": "Meetuply",
-        "full": "Learn about your team members"
+        "short": "OXOLetsMeetTeamsApp",
+        "full": "Lets Meet App using Meetuply"
     },
     "description": {
-        "short": "Meetuply",
-        "full": "Meetup bot"
+        "short": "Lets Meet App using Meetuply",
+        "full": "Lets Meet App using Meetuply"
     },
     "accentColor": "#FFFFFF",
+    "staticTabs": [
+        {
+            "entityId": "conversations",
+            "scopes": [
+                "personal"
+            ]
+        },
+        {
+            "entityId": "about",
+            "scopes": [
+                "personal"
+            ]
+        }
+    ],
     "bots": [
         {
-            "botId": "c457b63c-0a58-4270-8127-d65132ea26cb",
+            "botId": "8404c27b-3fb5-40cd-95ec-1f39401c8e70",
             "scopes": [
                 "personal",
                 "team"
