@@ -6,7 +6,7 @@ namespace TriggerEDUChatRouletteBot
     {
         static void Main(string[] args)
         {
-            var webRequest = WebRequest.Create($"https://<your_bot>.azurewebsites.net/api/processnow/<key>");
+            var webRequest = WebRequest.Create($"https://angomeetupbot1.azurewebsites.net/api/processnow/dd39eaa6-fcae-4ca9-b10f-62570c664e51");
             webRequest.GetResponse();
         }
     }

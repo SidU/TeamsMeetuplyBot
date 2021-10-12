@@ -193,6 +193,10 @@
                 await StoreUserOptInStatus(user1Info);
                 await StoreUserOptInStatus(user2Info);
             }
+            else
+            {
+                System.Diagnostics.Trace.TraceInformation($"Skip storing pair {userId1} and {userId2} to Cosmos DB in Testing mode");
+            }
 
             return true;
         }

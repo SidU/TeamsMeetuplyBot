@@ -158,7 +158,10 @@
                         System.Diagnostics.Trace.TraceError($"Failed to notify user due to error {uae.ToString()}");
                     }
                 }
-                
+                else
+                {
+                    System.Diagnostics.Trace.TraceInformation($"Skip sending notification to {user.Name} in testing mode");
+                }
             }
         }
 
