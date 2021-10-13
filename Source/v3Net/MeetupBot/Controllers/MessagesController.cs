@@ -1,6 +1,7 @@
 ﻿namespace MeetupBot
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Net.Http;
@@ -39,11 +40,15 @@
 
                     if (optOutRequst || string.Equals(activity.Text, "optout", StringComparison.InvariantCultureIgnoreCase))
                     {
+                        System.Diagnostics.Trace.TraceInformation($"Received an Opt-out request");
+
                         await MeetupBot.OptOutUser(activity.GetChannelData<TeamsChannelData>().Tenant.Id, senderAadId, activity.ServiceUrl);
                         replyText = Resources.OptOutConfirmation;
                     }
                     else if (string.Equals(activity.Text, "optin", StringComparison.InvariantCultureIgnoreCase))
                     {
+                        System.Diagnostics.Trace.TraceInformation($"Received an Opt-in request");
+
                         await MeetupBot.OptInUser(activity.GetChannelData<TeamsChannelData>().Tenant.Id, senderAadId, activity.ServiceUrl);
                         replyText = Resources.OptInConfirmation;
                     }
@@ -77,7 +82,7 @@
 
         private async Task<Activity> HandleSystemMessage(Activity message)
         {
-            System.Diagnostics.Trace.TraceInformation("Processing system message");
+            System.Diagnostics.Trace.TraceInformation($"Processing system message for Activity : {message.Type}");
 
             try
             {
@@ -91,43 +96,53 @@
 
                     if (teamsChannelData.Team == null || string.IsNullOrEmpty(teamsChannelData.Team.Id))
                     {
-                        // conversation-update is for 1:1 chat. Just ignore.
+                        System.Diagnostics.Trace.TraceInformation($"Conversation-update is for 1:1 chat. Just ignore.");
                         return null;
-                    }
-
-                    string memberAddedId = string.Empty;
-
-                    if (message.MembersAdded.Count > 0)
-                    {
-                        memberAddedId = message.MembersAdded.First().Id;
-                    }
-
-                    string memberRemovedId = string.Empty;
-                    if (message.MembersRemoved.Count > 0)
-                    {
-                        memberRemovedId = message.MembersRemoved.First().Id;
                     }
 
                     string myId = message.Recipient.Id;
 
-                    if (memberAddedId.Equals(myId))
+                    if (message.MembersAdded.Count > 0)
                     {
-                        // we were just added to team   
-                        await MeetupBot.SaveAddedToTeam(message.ServiceUrl, message.Conversation.Id, channelData.Tenant.Id);
+                        System.Diagnostics.Trace.TraceInformation($"Members to be added : {message.MembersAdded.Count}");
 
-                        // TODO: post activity.from has who added the bot. Can record it in schema.
-                    }
-                    else if (memberRemovedId.Equals(myId))
-                    {
-                        // we were just removed from a team
-                        await MeetupBot.SaveRemoveFromTeam(message.ServiceUrl, message.Conversation.Id, channelData.Tenant.Id);
-                    }
-                    else if (!string.IsNullOrEmpty(memberAddedId)) // If I wasn't added or removed, then someome else must have been added to team
-                    {
-                        // someone else was added
-                        // send them a welcome message
-                        await MeetupBot.WelcomeUser(message.ServiceUrl, memberAddedId, channelData.Tenant.Id, channelData.Team.Id);
+                        foreach (var member in message.MembersAdded)
+                        {
+                            var memberId = member.Id;
 
+                            if (memberId.Equals(myId))
+                            {
+                                // we were just added to team
+                                System.Diagnostics.Trace.TraceInformation($"Bot added to the Team: [{channelData.Team.Name}]");
+
+                                await MeetupBot.SaveAddedToTeam(message.ServiceUrl, message.Conversation.Id, channelData.Tenant.Id, channelData.Team.Name);
+                                // TODO: post activity.from has who added the bot. Can record it in schema.
+                            }
+                            else if (!string.IsNullOrEmpty(memberId)) // If I wasn't added or removed, then someome else must have been added to team
+                            {
+                                // someone else was added
+                                // send them a welcome message
+                                System.Diagnostics.Trace.TraceInformation($"User added. ID: [{member.Id}]. Sending Welcome message.");
+                                await MeetupBot.WelcomeUser(message.ServiceUrl, memberId, channelData.Tenant.Id, channelData.Team.Id);
+                            }
+                        }
+                    }
+
+                    if (message.MembersRemoved.Count > 0)
+                    {
+                        System.Diagnostics.Trace.TraceInformation($"Members to be removed : {message.MembersRemoved.Count}");
+
+                        foreach (var member in message.MembersRemoved)
+                        {
+                            var memberId = member.Id;
+
+                            if (memberId.Equals(myId))
+                            {
+                                // we were just removed from a team
+                                System.Diagnostics.Trace.TraceInformation($"Bot removed from the team: [{channelData.Team.Name}]");
+                                await MeetupBot.SaveRemoveFromTeam(message.ServiceUrl, message.Conversation.Id, channelData.Tenant.Id, channelData.Team.Name);
+                            }
+                        }
                     }
                 }
 
@@ -138,7 +153,6 @@
                 System.Diagnostics.Trace.TraceError(ex.Message);
                 throw;
             }
-           
         }
     }
 }

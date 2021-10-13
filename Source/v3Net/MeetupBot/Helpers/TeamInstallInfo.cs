@@ -7,6 +7,9 @@
     {
         [JsonProperty("teamId")]
         public string TeamId { get; set; }
+        
+        [JsonProperty("teamName")]
+        public string Teamname { get; set; }
 
         [JsonProperty("tenantId")]
         public string TenantId { get; set; }
@@ -16,7 +19,7 @@
 
         public override string ToString()
         {
-            return $"Team - Id = {this.TeamId}, TenantId = {this.TenantId}, ServiceUrl = {this.ServiceUrl}";
+            return $"Team - Id = {this.TeamId}, Name = {this.Teamname}, TenantId = {this.TenantId}, ServiceUrl = {this.ServiceUrl}";
         }
     }
 }

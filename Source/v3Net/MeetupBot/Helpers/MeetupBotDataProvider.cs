@@ -56,7 +56,8 @@
                 }
                 
             }
-            
+
+            System.Diagnostics.Trace.TraceInformation($"Finished updating Team Install status in DB");
             return team;
         }
 
@@ -206,6 +207,9 @@
         private static async Task<UserOptInInfo> StoreUserOptInStatus(UserOptInInfo obj)
         {
             await InitDatabaseAsync().ConfigureAwait(false);
+
+            // todo: Add user name after it is available
+            System.Diagnostics.Trace.TraceInformation($"Set Optin info for user: to {obj.OptedIn} in DB");
 
             var databaseName = CloudConfigurationManager.GetSetting("CosmosDBDatabaseName");
             var collectionName = CloudConfigurationManager.GetSetting("CosmosCollectionUsers");
