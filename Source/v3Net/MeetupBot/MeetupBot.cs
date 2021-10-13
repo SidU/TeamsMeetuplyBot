@@ -230,7 +230,10 @@
             System.Diagnostics.Trace.TraceInformation($"Making pairs for [{incomingUsers.Count}] users.");
 
             int attempts = 0;
-            int maxAttempts = 3;
+            int maxAttempts = 5;
+
+            // For Pairing, we only look ahead on the users list. So it is possible we have already met all ahead of us but none behind us.
+            // Another Attemt with shuffling the users solves that problem.
             while (attempts < maxAttempts)
             {
                 attempts++;
