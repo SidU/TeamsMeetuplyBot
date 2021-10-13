@@ -105,6 +105,7 @@
 
             if (userThatJustJoined != null)
             {
+                System.Diagnostics.Trace.TraceInformation($"Notify User: [{userThatJustJoined.Name}] about addition to the team");
                 await NotifyUser(serviceUrl, welcomeMessageCard, userThatJustJoined, tenantId);
             }
             
@@ -152,7 +153,8 @@
                     // added try catch because if user has set "Block conversations with bots"
                     try
                     {
-                        await connectorClient.Conversations.SendToConversationAsync(activity, response.Id);
+                        await connectorClient.Conversations.SendToConversationAsync(activity, response.Id).ConfigureAwait(false);
+                        System.Diagnostics.Trace.TraceInformation($"Notified {user.Name}");
                     }
                     catch (UnauthorizedAccessException uae)
                     {
@@ -163,17 +165,19 @@
                 {
                     System.Diagnostics.Trace.TraceInformation($"Skip sending notification to {user.Name} in testing mode");
                 }
+
+                
             }
         }
 
-        public static async Task SaveAddedToTeam(string serviceUrl, string teamId, string tenantId)
+        public static async Task SaveAddedToTeam(string serviceUrl, string teamId, string tenantId, string teamName)
         {
-            await MeetupBotDataProvider.SaveTeamInstallStatus(new TeamInstallInfo() { ServiceUrl = serviceUrl, TeamId = teamId, TenantId = tenantId }, true);
+            await MeetupBotDataProvider.SaveTeamInstallStatus(new TeamInstallInfo() { ServiceUrl = serviceUrl, TeamId = teamId, TenantId = tenantId, Teamname = teamName }, true);
         }
 
-        public static async Task SaveRemoveFromTeam(string serviceUrl, string teamId, string tenantId)
+        public static async Task SaveRemoveFromTeam(string serviceUrl, string teamId, string tenantId, string teamName)
         {
-            await MeetupBotDataProvider.SaveTeamInstallStatus(new TeamInstallInfo() { ServiceUrl = serviceUrl, TeamId = teamId, TenantId = tenantId }, false);
+            await MeetupBotDataProvider.SaveTeamInstallStatus(new TeamInstallInfo() { ServiceUrl = serviceUrl, TeamId = teamId, TenantId = tenantId, Teamname = teamName }, false);
         }
 
         public static async Task OptOutUser(string tenantId, string userId, string serviceUrl)
