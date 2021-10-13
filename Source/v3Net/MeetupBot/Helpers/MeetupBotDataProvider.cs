@@ -120,6 +120,7 @@
             {
                 result.Add(status.UserId, status);
             }
+
             return result;
         }
 
@@ -142,6 +143,7 @@
        
         public static async Task<bool> StorePairup(string tenantId, Dictionary<string, UserOptInInfo> userOptInInfo, string userId1, string userId2, string userFullName1, string userFullName2)
         {
+            System.Diagnostics.Trace.TraceInformation($"Storing the pair: [{userFullName1}] and [{userFullName2}]");
             await InitDatabaseAsync().ConfigureAwait(false);
 
             var maxPairUpHistory = Convert.ToInt64(CloudConfigurationManager.GetSetting("MaxPairUpHistory"));
@@ -153,13 +155,19 @@
                 UserFullName = userFullName1,
                 OptedIn = true,
             };
+
             if (userOptInInfo.TryGetValue(userId1, out UserOptInInfo initialUser1Info))
             {
+                // User already exists.
+                // Get their recent pairs and add the new one to the list.
+                System.Diagnostics.Trace.TraceInformation($"User [{userFullName1}] already exists in the system. Get previous pairs.");
+
                 user1Info.RecentPairUps = initialUser1Info.RecentPairUps ?? new List<string>();
                 user1Info.Id = initialUser1Info.Id;
             }
             else
             {
+                System.Diagnostics.Trace.TraceInformation($"User [{userFullName1}] not found in the system. Create a new Pair list");
                 user1Info.RecentPairUps = new List<string>();
             }
             
@@ -170,63 +178,72 @@
                 UserFullName = userFullName2,
                 OptedIn = true,
             };
+
             if (userOptInInfo.TryGetValue(userId2, out UserOptInInfo initialUser2Info))
             {
+                // User already exists.
+                // Get their recent pairs and add the new one to the list.
+                System.Diagnostics.Trace.TraceInformation($"User [{userFullName2}] already exists in the system. Get previous pairs.");
+
                 user2Info.RecentPairUps = initialUser2Info.RecentPairUps ?? new List<string>();
                 user2Info.Id = initialUser2Info.Id;
             }
             else
             {
+                System.Diagnostics.Trace.TraceInformation($"User [{userFullName2}] not found in the system. Create a new Pair list");
                 user2Info.RecentPairUps = new List<string>();
             }
 
             user1Info.RecentPairUps.Add(user2Info.UserId);
-            if (user1Info.RecentPairUps.Count > maxPairUpHistory) {
+            if (user1Info.RecentPairUps.Count > maxPairUpHistory) 
+            {
                 user1Info.RecentPairUps.RemoveAt(0);
             }
 
             user2Info.RecentPairUps.Add(user1Info.UserId);
-            if (user2Info.RecentPairUps.Count > maxPairUpHistory) {
+            if (user2Info.RecentPairUps.Count > maxPairUpHistory) 
+            {
                 user2Info.RecentPairUps.RemoveAt(0);
             }
 
             var isTesting = Boolean.Parse(CloudConfigurationManager.GetSetting("Testing"));
             if (!isTesting)
             {
-                await StoreUserOptInStatus(user1Info);
-                await StoreUserOptInStatus(user2Info);
+                await StoreUserOptInStatus(user1Info).ConfigureAwait(false);
+                await StoreUserOptInStatus(user2Info).ConfigureAwait(false);
+                System.Diagnostics.Trace.TraceInformation($"Updating the pair : [{userFullName1}] and [{userFullName2}] in DB");
             }
             else
             {
-                System.Diagnostics.Trace.TraceInformation($"Skip storing pair {userId1} and {userId2} to Cosmos DB in Testing mode");
+                System.Diagnostics.Trace.TraceInformation($"Skip storing pair {userId1} and {userId2} to DB in Testing mode");
             }
 
             return true;
         }
 
-        private static async Task<UserOptInInfo> StoreUserOptInStatus(UserOptInInfo obj)
+        private static async Task<UserOptInInfo> StoreUserOptInStatus(UserOptInInfo userInfo)
         {
             await InitDatabaseAsync().ConfigureAwait(false);
 
             // todo: Add user name after it is available
-            System.Diagnostics.Trace.TraceInformation($"Set Optin info for user: to {obj.OptedIn} in DB");
+            System.Diagnostics.Trace.TraceInformation($"Set Optin info for user: to {userInfo.OptedIn} in DB");
 
             var databaseName = CloudConfigurationManager.GetSetting("CosmosDBDatabaseName");
             var collectionName = CloudConfigurationManager.GetSetting("CosmosCollectionUsers");
 
-            var existingDoc = await GetUserOptInStatusAsync(obj.TenantId, obj.UserId).ConfigureAwait(false);
+            var existingDoc = await GetUserOptInStatusAsync(userInfo.TenantId, userInfo.UserId).ConfigureAwait(false);
             if (existingDoc != null)
             {
                 // Overwrite the existing document
-                obj.Id = existingDoc.Id;
+                userInfo.Id = existingDoc.Id;
             }
 
             await documentClient.UpsertDocumentAsync(
                 UriFactory.CreateDocumentCollectionUri(databaseName, collectionName),
-                obj);
-            
-            return obj;
-        }
+                userInfo);
 
+            System.Diagnostics.Trace.TraceInformation($"Updated User: [{userInfo.UserFullName}] in DB");
+            return userInfo;
+        }
     }
 }

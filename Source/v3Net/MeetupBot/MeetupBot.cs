@@ -30,6 +30,8 @@
             var countPairsNotified = 0;
             var maxPairUpsPerTeam = Convert.ToInt32(CloudConfigurationManager.GetSetting("MaxPairUpsPerTeam"));
 
+            System.Diagnostics.Trace.TraceInformation($"MakePairsAndNotify found {teams.Count} teams");
+
             foreach (var team in teams)
             {
                 try
@@ -38,11 +40,12 @@
                     var optedInUsers = await GetOptedInUsers(team, optInStatuses);
 
                     var teamName = await GetTeamNameAsync(team.ServiceUrl, team.TeamId);
+                    System.Diagnostics.Trace.TraceInformation($"Found [{optInStatuses.Count}] users in the DB for team [{teamName}]. Users opted in: [{optedInUsers.Count}]");
 
                     foreach (var pair in MakePairs(optedInUsers, optInStatuses).Take(maxPairUpsPerTeam))
                     {
-                        await NotifyPair(team.ServiceUrl, team.TenantId, teamName, pair);
-                        await MeetupBotDataProvider.StorePairup(team.TenantId, optInStatuses, pair.Item1.ObjectId, pair.Item2.ObjectId, pair.Item1.Name, pair.Item2.Name);
+                        await NotifyPair(team.ServiceUrl, team.TenantId, teamName, pair).ConfigureAwait(false);
+                        await MeetupBotDataProvider.StorePairup(team.TenantId, optInStatuses, pair.Item1.ObjectId, pair.Item2.ObjectId, pair.Item1.Name, pair.Item2.Name).ConfigureAwait(false);
 
                         countPairsNotified++;
                     }
@@ -54,7 +57,6 @@
             }
 
             System.Diagnostics.Trace.TraceInformation($"{countPairsNotified} pairs notified");
-
             return countPairsNotified;
         }
 
@@ -80,8 +82,8 @@
             // Fill in person1's info in the card for person2
             var cardForPerson2 = PairUpNotificationAdaptiveCard.GetCard(isPerson1: false, teamName, teamsPerson1.Name, teamsPerson1.GivenName, teamsPerson2.GivenName, teamsPerson1.UserPrincipalName);
 
-            await NotifyUser(serviceUrl, cardForPerson1, teamsPerson1, tenantId);
-            await NotifyUser(serviceUrl, cardForPerson2, teamsPerson2, tenantId);
+            await NotifyUser(serviceUrl, cardForPerson1, teamsPerson1, tenantId).ConfigureAwait(false);
+            await NotifyUser(serviceUrl, cardForPerson2, teamsPerson2, tenantId).ConfigureAwait(false);
         }
 
         public static async Task WelcomeUser(string serviceUrl, string memberAddedId, string tenantId, string teamId)
@@ -108,7 +110,6 @@
                 System.Diagnostics.Trace.TraceInformation($"Notify User: [{userThatJustJoined.Name}] about addition to the team");
                 await NotifyUser(serviceUrl, welcomeMessageCard, userThatJustJoined, tenantId);
             }
-            
         }
 
         private static async Task NotifyUser(string serviceUrl, string cardToSend, ChannelAccount user, string tenantId)
@@ -154,7 +155,7 @@
                     try
                     {
                         await connectorClient.Conversations.SendToConversationAsync(activity, response.Id).ConfigureAwait(false);
-                        System.Diagnostics.Trace.TraceInformation($"Notified {user.Name}");
+                        System.Diagnostics.Trace.TraceInformation($"Notification sent to {user.Name}");
                     }
                     catch (UnauthorizedAccessException uae)
                     {
@@ -165,8 +166,6 @@
                 {
                     System.Diagnostics.Trace.TraceInformation($"Skip sending notification to {user.Name} in testing mode");
                 }
-
-                
             }
         }
 
@@ -226,17 +225,25 @@
 
         private static List<Tuple<TeamsChannelAccount, TeamsChannelAccount>> MakePairs(List<TeamsChannelAccount> incomingUsers, Dictionary<string, UserOptInInfo> optInInfo)
         {
+            System.Diagnostics.Trace.TraceInformation($"Making pairs for [{incomingUsers}] users.");
+
             int attempts = 0;
-            while (attempts < 5)
+            int maxAttempts = 3;
+            while (attempts < maxAttempts)
             {
                 attempts++;
+                System.Diagnostics.Trace.TraceInformation($"Attempt [{attempts}] to make pairs. Max Attempts: [{maxAttempts}]");
+
                 // Deep copy the users so we can mess with the list
                 var users = JsonConvert.DeserializeObject<List<TeamsChannelAccount>>(JsonConvert.SerializeObject(incomingUsers));
                 var pairs = MakePairsInternal(users, optInInfo);
+
                 if (pairs != null)
                 {
                     return pairs;
                 }
+
+                System.Diagnostics.Trace.TraceWarning($"Attempt [{attempts}] failed. Retrying until Max attempts = [{maxAttempts}]");
             }
 
             return MakePairsInternal(incomingUsers, optInInfo, canTryAgain: false);
@@ -247,6 +254,7 @@
             var pairs = new List<Tuple<TeamsChannelAccount, TeamsChannelAccount>>();
 
             Randomize<TeamsChannelAccount>(users);
+            int repeatedMatch = 0;
 
             while (users.Count > 1)
             {
@@ -254,30 +262,47 @@
                 optInInfo.TryGetValue(user1.ObjectId, out var user1OptIn);
                 TeamsChannelAccount user2 = null;
                 int pointer = 1;
+
                 // Find the first person they haven't been paired with recently.
                 while (user2 == null && pointer < users.Count)
                 {
                     if (user1OptIn?.RecentPairUps == null || !user1OptIn.RecentPairUps.Contains(users[pointer].ObjectId))
                     {
+                        // Either User1 has not paired with anyone or not with User at this index.
                         user2 = users[pointer];
                     }
+                    else
+                    {
+                        // this keeps track of how may repeated meetings we avoided.
+                        repeatedMatch++;
+                    }
+
                     pointer++;
                 }
 
-                // Pair these two and remove them from the people to pair. If we didn't find someone to pair user1 with, give up on them for this week.
+                // Pair these two and remove them from the people to pair.
+                // If we didn't find someone to pair user1 with, give up on them for this week.
                 if (user2 != null)
                 {
+                    System.Diagnostics.Trace.TraceInformation($"Paired [{user1.Name}] with [{user2.Name}]");
                     pairs.Add(new Tuple<TeamsChannelAccount, TeamsChannelAccount>(user1, user2));
                     users.Remove(user2);
                 }
-                else if (canTryAgain)
+                else
                 {
-                    // Didn't find anyone to pair them with. Try again.
-                    return null;
+                    System.Diagnostics.Trace.TraceInformation($"Did not find anyone to pair with User1: [{user1.Name}]. Return");
+
+                    if (canTryAgain)
+                    {
+                        // try to create pairs again
+                        return null;
+                    }
                 }
+
                 users.Remove(user1);
             }
-            
+
+            System.Diagnostics.Trace.TraceInformation($"Total Pairs created: [{pairs.Count}]. Repititions avoided = [{repeatedMatch}].");
             return pairs;
         }
 
