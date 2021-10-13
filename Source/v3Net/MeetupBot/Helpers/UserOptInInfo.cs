@@ -17,5 +17,8 @@
 
         [JsonProperty("recentPairups")]
         public List<string> RecentPairUps { get; set; }
+
+        [JsonProperty("userFullName")]
+        public string UserFullName { get; set; }
     }
 }

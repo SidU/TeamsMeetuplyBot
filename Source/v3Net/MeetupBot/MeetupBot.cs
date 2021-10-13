@@ -42,7 +42,7 @@
                     foreach (var pair in MakePairs(optedInUsers, optInStatuses).Take(maxPairUpsPerTeam))
                     {
                         await NotifyPair(team.ServiceUrl, team.TenantId, teamName, pair);
-                        await MeetupBotDataProvider.StorePairup(team.TenantId, optInStatuses, pair.Item1.ObjectId, pair.Item2.ObjectId);
+                        await MeetupBotDataProvider.StorePairup(team.TenantId, optInStatuses, pair.Item1.ObjectId, pair.Item2.ObjectId, pair.Item1.Name, pair.Item2.Name);
 
                         countPairsNotified++;
                     }

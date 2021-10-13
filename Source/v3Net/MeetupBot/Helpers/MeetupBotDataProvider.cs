@@ -139,7 +139,7 @@
             return obj;
         }
        
-        public static async Task<bool> StorePairup(string tenantId, Dictionary<string, UserOptInInfo> userOptInInfo, string userId1, string userId2)
+        public static async Task<bool> StorePairup(string tenantId, Dictionary<string, UserOptInInfo> userOptInInfo, string userId1, string userId2, string userFullName1, string userFullName2)
         {
             await InitDatabaseAsync().ConfigureAwait(false);
 
@@ -149,6 +149,7 @@
             {
                 TenantId = tenantId,
                 UserId = userId1,
+                UserFullName = userFullName1,
                 OptedIn = true,
             };
             if (userOptInInfo.TryGetValue(userId1, out UserOptInInfo initialUser1Info))
@@ -165,6 +166,7 @@
             {
                 TenantId = tenantId,
                 UserId = userId2,
+                UserFullName = userFullName2,
                 OptedIn = true,
             };
             if (userOptInInfo.TryGetValue(userId2, out UserOptInInfo initialUser2Info))
