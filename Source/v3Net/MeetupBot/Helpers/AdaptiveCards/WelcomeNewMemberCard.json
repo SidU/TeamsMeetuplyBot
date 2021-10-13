@@ -17,7 +17,7 @@
       "items": [
         {
           "type": "TextBlock",
-          "text": "I am _%team%_ bot 🤖 and here to help you network with new people in your Organization. Every Month, I will randomly match you to a new colleague.",
+          "text": "I am _%team%_ bot 🤖 and here to help you Connect with new people in your Organization. Every Month, I will randomly match you to a new colleague.",
           "wrap": true
         },
         {

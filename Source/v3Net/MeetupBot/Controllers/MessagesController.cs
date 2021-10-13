@@ -36,20 +36,22 @@
 
                 try
                 {
-                    var senderAadId = activity.From.AsTeamsChannelAccount().Properties["aadObjectId"].ToString();
+                    var senderInfo = activity.From.AsTeamsChannelAccount();
+                    var senderAadId = senderInfo.Properties["aadObjectId"].ToString();
+                    var senderName = senderInfo.Name;
 
                     if (optOutRequst || string.Equals(activity.Text, "optout", StringComparison.InvariantCultureIgnoreCase))
                     {
                         System.Diagnostics.Trace.TraceInformation($"Received an Opt-out request");
-
-                        await MeetupBot.OptOutUser(activity.GetChannelData<TeamsChannelData>().Tenant.Id, senderAadId, activity.ServiceUrl);
+                        
+                        await MeetupBot.OptOutUser(activity.GetChannelData<TeamsChannelData>().Tenant.Id, senderAadId, senderName, activity.ServiceUrl);
                         replyText = Resources.OptOutConfirmation;
                     }
                     else if (string.Equals(activity.Text, "optin", StringComparison.InvariantCultureIgnoreCase))
                     {
                         System.Diagnostics.Trace.TraceInformation($"Received an Opt-in request");
 
-                        await MeetupBot.OptInUser(activity.GetChannelData<TeamsChannelData>().Tenant.Id, senderAadId, activity.ServiceUrl);
+                        await MeetupBot.OptInUser(activity.GetChannelData<TeamsChannelData>().Tenant.Id, senderAadId, senderName, activity.ServiceUrl);
                         replyText = Resources.OptInConfirmation;
                     }
                     else
@@ -122,7 +124,6 @@
                             {
                                 // someone else was added
                                 // send them a welcome message
-                                System.Diagnostics.Trace.TraceInformation($"User added. ID: [{member.Id}]. Sending Welcome message.");
                                 await MeetupBot.WelcomeUser(message.ServiceUrl, memberId, channelData.Tenant.Id, channelData.Team.Id);
                             }
                         }

@@ -36,11 +36,12 @@
             {
                 try
                 {
-                    var optInStatuses = await MeetupBotDataProvider.GetUserOptInStatusesAsync(team.TenantId);
-                    var optedInUsers = await GetOptedInUsers(team, optInStatuses);
-
                     var teamName = await GetTeamNameAsync(team.ServiceUrl, team.TeamId);
-                    System.Diagnostics.Trace.TraceInformation($"Found [{optInStatuses.Count}] users in the DB for team [{teamName}]. Users opted in: [{optedInUsers.Count}]");
+                    
+                    var optInStatuses = await MeetupBotDataProvider.GetUserOptInStatusesAsync(team.TenantId);
+                    System.Diagnostics.Trace.TraceInformation($"Found [{optInStatuses.Count}] users in the DB ");
+                    
+                    var optedInUsers = await GetOptedInUsers(team, optInStatuses);
 
                     foreach (var pair in MakePairs(optedInUsers, optInStatuses).Take(maxPairUpsPerTeam))
                     {
@@ -107,7 +108,7 @@
 
             if (userThatJustJoined != null)
             {
-                System.Diagnostics.Trace.TraceInformation($"Notify User: [{userThatJustJoined.Name}] about addition to the team");
+                System.Diagnostics.Trace.TraceInformation($"Notify User: [{userThatJustJoined.Name}] about addition to the team: [{teamName}]");
                 await NotifyUser(serviceUrl, welcomeMessageCard, userThatJustJoined, tenantId);
             }
         }
@@ -155,7 +156,7 @@
                     try
                     {
                         await connectorClient.Conversations.SendToConversationAsync(activity, response.Id).ConfigureAwait(false);
-                        System.Diagnostics.Trace.TraceInformation($"Notification sent to {user.Name}");
+                        System.Diagnostics.Trace.TraceInformation($"Notification sent to [{user.Name}]");
                     }
                     catch (UnauthorizedAccessException uae)
                     {
@@ -164,7 +165,7 @@
                 }
                 else
                 {
-                    System.Diagnostics.Trace.TraceInformation($"Skip sending notification to {user.Name} in testing mode");
+                    System.Diagnostics.Trace.TraceInformation($"Skip sending notification to [{user.Name}] in testing mode");
                 }
             }
         }
@@ -179,14 +180,14 @@
             await MeetupBotDataProvider.SaveTeamInstallStatus(new TeamInstallInfo() { ServiceUrl = serviceUrl, TeamId = teamId, TenantId = tenantId, Teamname = teamName }, false);
         }
 
-        public static async Task OptOutUser(string tenantId, string userId, string serviceUrl)
+        public static async Task OptOutUser(string tenantId, string userId, string userName, string serviceUrl)
         {
-            await MeetupBotDataProvider.SetUserOptInStatus(tenantId, userId, false, serviceUrl);
+            await MeetupBotDataProvider.SetUserOptInStatus(tenantId, userId, userName, false, serviceUrl);
         }
 
-        public static async Task OptInUser(string tenantId, string userId, string serviceUrl)
+        public static async Task OptInUser(string tenantId, string userId, string userName, string serviceUrl)
         {
-            await MeetupBotDataProvider.SetUserOptInStatus(tenantId, userId, true, serviceUrl);
+            await MeetupBotDataProvider.SetUserOptInStatus(tenantId, userId, userName, true, serviceUrl);
         }
 
         private static async Task<TeamsChannelAccount[]> GetTeamMembers(string serviceUrl, string teamId, string tenantId)
@@ -220,12 +221,13 @@
                 }
             }
 
+            System.Diagnostics.Trace.TraceInformation($"Found [{optedInUsers.Count}] users in the Team: [{teamInfo.Teamname}]");
             return optedInUsers;
         }
 
         private static List<Tuple<TeamsChannelAccount, TeamsChannelAccount>> MakePairs(List<TeamsChannelAccount> incomingUsers, Dictionary<string, UserOptInInfo> optInInfo)
         {
-            System.Diagnostics.Trace.TraceInformation($"Making pairs for [{incomingUsers}] users.");
+            System.Diagnostics.Trace.TraceInformation($"Making pairs for [{incomingUsers.Count}] users.");
 
             int attempts = 0;
             int maxAttempts = 3;

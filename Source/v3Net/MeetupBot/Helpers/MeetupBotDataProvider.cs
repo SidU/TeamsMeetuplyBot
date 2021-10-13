@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using Microsoft.Azure;
     using Microsoft.Azure.Documents.Client;
+    using Microsoft.Bot.Connector.Teams.Models;
 
     public static class MeetupBotDataProvider
     {
@@ -26,6 +27,7 @@
 
         public static async Task<TeamInstallInfo> SaveTeamInstallStatus(TeamInstallInfo team, bool installed)
         {
+            System.Diagnostics.Trace.TraceInformation($"Update info for team [{team.Teamname}] in DB");
             await InitDatabaseAsync().ConfigureAwait(false);
 
             var databaseName = CloudConfigurationManager.GetSetting("CosmosDBDatabaseName");
@@ -40,7 +42,6 @@
             else
             {
                 // query first
-                
                 // Set some common query options
                 FeedOptions queryOptions = new FeedOptions { MaxItemCount = -1 };
 
@@ -57,7 +58,7 @@
                 
             }
 
-            System.Diagnostics.Trace.TraceInformation($"Finished updating Team Install status in DB");
+            System.Diagnostics.Trace.TraceInformation($"Finished updating info for team [{team.Teamname}] in DB");
             return team;
         }
 
@@ -124,21 +125,22 @@
             return result;
         }
 
-        public static async Task<UserOptInInfo> SetUserOptInStatus(string tenantId, string userId, bool optedIn, string serviceUrl)
+        public static async Task<UserOptInInfo> SetUserOptInStatus(string tenantId, string userId, string userName, bool optedIn, string serviceUrl)
         {
             await InitDatabaseAsync().ConfigureAwait(false);
 
-            var obj = new UserOptInInfo()
+            var userInfo = new UserOptInInfo()
             {
                 TenantId = tenantId,
                 UserId = userId,
                 OptedIn = optedIn,
-                RecentPairUps = new List<string>()
+                RecentPairUps = new List<string>(),
+                UserFullName = userName
             };
 
-            obj = await StoreUserOptInStatus(obj);
+            userInfo = await StoreUserOptInStatus(userInfo);
 
-            return obj;
+            return userInfo;
         }
        
         public static async Task<bool> StorePairup(string tenantId, Dictionary<string, UserOptInInfo> userOptInInfo, string userId1, string userId2, string userFullName1, string userFullName2)
@@ -215,7 +217,7 @@
             }
             else
             {
-                System.Diagnostics.Trace.TraceInformation($"Skip storing pair {userId1} and {userId2} to DB in Testing mode");
+                System.Diagnostics.Trace.TraceInformation($"Skip storing pair [{userId1}] and [{userId2}] to DB in Testing mode");
             }
 
             return true;
@@ -225,8 +227,7 @@
         {
             await InitDatabaseAsync().ConfigureAwait(false);
 
-            // todo: Add user name after it is available
-            System.Diagnostics.Trace.TraceInformation($"Set Optin info for user: to {userInfo.OptedIn} in DB");
+            System.Diagnostics.Trace.TraceInformation($"Set Optin info for user: [{userInfo.UserFullName}] to {userInfo.OptedIn} in DB");
 
             var databaseName = CloudConfigurationManager.GetSetting("CosmosDBDatabaseName");
             var collectionName = CloudConfigurationManager.GetSetting("CosmosCollectionUsers");
