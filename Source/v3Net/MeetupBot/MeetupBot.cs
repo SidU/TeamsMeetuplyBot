@@ -34,13 +34,23 @@
 
             foreach (var team in teams)
             {
+                // Use this if you want to skip the OXO Lets Meet official team for testing
+#if !SKIP_MAIN_TEAM
+                if (string.Equals(team.Id , "e2f160f7-2ef5-43b1-98a5-238839fba0ec", StringComparison.OrdinalIgnoreCase))
+                {
+                    System.Diagnostics.Trace.TraceInformation($"Found team name: [{team.Teamname}], ID: [{team.Id}]. Skipping");
+                    continue;
+                }
+#endif
+                System.Diagnostics.Trace.TraceInformation($"Found team name: [{team.Teamname}], ID: [{team.Id}]");
+
                 try
                 {
                     var teamName = await GetTeamNameAsync(team.ServiceUrl, team.TeamId);
-                    
+
                     var optInStatuses = await MeetupBotDataProvider.GetUserOptInStatusesAsync(team.TenantId);
                     System.Diagnostics.Trace.TraceInformation($"Found [{optInStatuses.Count}] users in the DB ");
-                    
+
                     var optedInUsers = await GetOptedInUsers(team, optInStatuses);
 
                     foreach (var pair in MakePairs(optedInUsers, optInStatuses).Take(maxPairUpsPerTeam))
