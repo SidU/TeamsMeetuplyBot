@@ -1,0 +1,50 @@
+﻿@model  TriggerPairingWebApp.Models.TeamViewModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+@{
+    ViewBag.Title = "Welcome to Lets Meet";
+}
+
+<div class="jumbotron">
+    <h1>OXO Lets Meet</h1>
+    <p class="lead">Use this form to triger Pairing and meetup notifications for your team.</p>
+</div>
+
+<p>
+    <table class="table">
+        <tr>
+            <th>Team Name</th>
+            <th>Team Id</th>
+        </tr>
+
+        @foreach (var team in Model.AllTeams)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => team.Text)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => team.Value)
+                </td>
+            </tr>
+        }
+    </table>
+</p>
+
+<p>
+    <div class="row">
+        <div class="col-md-12">
+
+            @using (Html.BeginForm())
+            {
+                @Html.Label("Select Team for Pairing: ")<br />
+                @Html.DropDownListFor(t => t.SelectedTeamId, Model.AllTeams, "--Select Team--")
+                <br />
+                <br />
+                <button type="submit" name="action">Submit</button>
+            }
+        </div>
+    </div>
+</p>
