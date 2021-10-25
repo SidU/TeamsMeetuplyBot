@@ -6,7 +6,9 @@ namespace TriggerWebJob
     {
         static void Main(string[] args)
         {
-            var webRequest = WebRequest.Create($"https://meetupbotappservice.azurewebsites.net/api/processnow/dd39eaa6-fcae-4ca9-b10f-62570c664e51");
+            // trigger pairing for LetsMeethackathon Team
+            var webRequest = WebRequest.Create($"https://meetupbotappservice.azurewebsites.net/api/processnow/19:bptvDEOTBztyG4t6Z-QFg95s61PV6Vb7Y6E5GECNb2E1@thread.tacv2");
+            webRequest.Method = "POST";
             webRequest.GetResponse();
         }
     }

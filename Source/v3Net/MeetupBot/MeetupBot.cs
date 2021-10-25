@@ -14,64 +14,77 @@
 
     public static class MeetupBot
     {
-        public static async Task<int> MakePairsAndNotify()
+        public static async Task<int> MakePairsAndNotify(string teamId)
         {
-            // Recall all the teams where we have been added
-            // For each team where I have been added:
-            //     Pull the roster of each team where I have been added
+            // Find the team with this team id.
+            //     Get all members in the team
             //     Remove the members who have opted out of pairs
             //     Match each member with someone else
             //     Save this pair
+            //     Add the member to DB if not already done
             // Now notify each pair found in 1:1 and ask them to reach out to the other person
             // When contacting the user in 1:1, give them the button to opt-out.
 
-            var teams = await MeetupBotDataProvider.GetInstalledTeamsAsync().ConfigureAwait(false);
+            TeamInstallInfo team = new TeamInstallInfo();
 
+            var teams = await GetTeamsInfoAsync().ConfigureAwait(false);
+            team = teams.FirstOrDefault(t => t.Id == teamId);
+
+            if (team == null)
+			{
+                System.Diagnostics.Trace.TraceError($"No team found with Id: [{teamId}]. Return.");
+                return -1;
+            }
+
+            System.Diagnostics.Trace.TraceInformation($"Found Team: [{team}]");
+
+            // Use this if you want to skip the OXO Lets Meet official team for testing
+#if !PAIR_MAIN_TEAM
+            if (string.Equals(team.Id, "e2f160f7-2ef5-43b1-98a5-238839fba0ec", StringComparison.OrdinalIgnoreCase))
+            {
+                System.Diagnostics.Trace.TraceInformation($"Skipping Pairing for Team: [{team}].");
+                return -1;
+            }
+#endif
+            System.Diagnostics.Trace.TraceInformation($"Creating Pairs...");
             var countPairsNotified = 0;
             var maxPairUpsPerTeam = Convert.ToInt32(CloudConfigurationManager.GetSetting("MaxPairUpsPerTeam"));
-
-            System.Diagnostics.Trace.TraceInformation($"MakePairsAndNotify found {teams.Count} teams");
-
-            foreach (var team in teams)
+ 
+            try
             {
-                // Use this if you want to skip the OXO Lets Meet official team for testing
-#if !SKIP_MAIN_TEAM
-                if (string.Equals(team.Id , "e2f160f7-2ef5-43b1-98a5-238839fba0ec", StringComparison.OrdinalIgnoreCase))
+                var optInStatuses = await MeetupBotDataProvider.GetUserOptInStatusesAsync(team.TenantId);
+                System.Diagnostics.Trace.TraceInformation($"Found [{optInStatuses.Count}] users in the DB ");
+
+                // This gets the opted in users from Database plus the new members in the team.
+                var optedInUsers = await GetOptedInUsers(team, optInStatuses);
+
+                foreach (var pair in MakePairs(optedInUsers, optInStatuses).Take(maxPairUpsPerTeam))
                 {
-                    System.Diagnostics.Trace.TraceInformation($"Found team name: [{team.Teamname}], ID: [{team.Id}]. Skipping");
-                    continue;
+                    await NotifyPair(team.ServiceUrl, team.TenantId, team.Teamname, pair).ConfigureAwait(false);
+                    await MeetupBotDataProvider.StorePairup(team.TenantId, optInStatuses, pair.Item1.ObjectId, pair.Item2.ObjectId, pair.Item1.Name, pair.Item2.Name).ConfigureAwait(false);
+
+                    countPairsNotified++;
                 }
-#endif
-                System.Diagnostics.Trace.TraceInformation($"Found team name: [{team.Teamname}], ID: [{team.Id}]");
-
-                try
-                {
-                    var teamName = await GetTeamNameAsync(team.ServiceUrl, team.TeamId);
-
-                    var optInStatuses = await MeetupBotDataProvider.GetUserOptInStatusesAsync(team.TenantId);
-                    System.Diagnostics.Trace.TraceInformation($"Found [{optInStatuses.Count}] users in the DB ");
-
-                    var optedInUsers = await GetOptedInUsers(team, optInStatuses);
-
-                    foreach (var pair in MakePairs(optedInUsers, optInStatuses).Take(maxPairUpsPerTeam))
-                    {
-                        await NotifyPair(team.ServiceUrl, team.TenantId, teamName, pair).ConfigureAwait(false);
-                        await MeetupBotDataProvider.StorePairup(team.TenantId, optInStatuses, pair.Item1.ObjectId, pair.Item2.ObjectId, pair.Item1.Name, pair.Item2.Name).ConfigureAwait(false);
-
-                        countPairsNotified++;
-                    }
-                }
-                catch (UnauthorizedAccessException uae)
-                {
-                    System.Diagnostics.Trace.TraceError($"Failed to process a team: {team.ToString()} due to error {uae.ToString()}");
-                }
+            }
+            catch (UnauthorizedAccessException uae)
+            {
+                System.Diagnostics.Trace.TraceError($"Failed to process a team: {team.ToString()} due to error {uae.ToString()}");
             }
 
             System.Diagnostics.Trace.TraceInformation($"{countPairsNotified} pairs notified");
             return countPairsNotified;
         }
 
-        private static async Task<string> GetTeamNameAsync(string serviceUrl, string teamId)
+		public static async Task<List<TeamInstallInfo>> GetTeamsInfoAsync()
+		{
+            System.Diagnostics.Trace.TraceInformation($"Get All Teams where the bot is registered.");
+            var teams = await MeetupBotDataProvider.GetInstalledTeamsAsync().ConfigureAwait(false);
+            System.Diagnostics.Trace.TraceInformation($"Found {teams.Count} teams");
+
+            return teams;
+        }
+
+		private static async Task<string> GetTeamNameAsync(string serviceUrl, string teamId)
         {
             using (var client = new ConnectorClient(new Uri(serviceUrl)))
             {

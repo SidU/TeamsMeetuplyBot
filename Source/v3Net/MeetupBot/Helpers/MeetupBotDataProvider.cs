@@ -62,6 +62,26 @@
             return team;
         }
 
+        public static async Task<TeamInstallInfo> GetTeamInfoAsync(string teamId)
+        {
+            await InitDatabaseAsync().ConfigureAwait(false);
+
+            var databaseName = CloudConfigurationManager.GetSetting("CosmosDBDatabaseName");
+            var collectionName = CloudConfigurationManager.GetSetting("CosmosCollectionTeams");
+
+            // Set some common query options
+            FeedOptions queryOptions = new FeedOptions { MaxItemCount = -1 };
+
+            // Find matching activities
+            var lookupQuery = documentClient.CreateDocumentQuery<TeamInstallInfo>(
+                UriFactory.CreateDocumentCollectionUri(databaseName, collectionName), queryOptions)
+                 .Where(t => t.TenantId == teamId);
+
+            var match = lookupQuery.ToList();
+            System.Diagnostics.Trace.TraceInformation($"found [{match.Count}] matches");
+            return match.FirstOrDefault();
+        }
+
         public static async Task<List<TeamInstallInfo>> GetInstalledTeamsAsync()
         {
             await InitDatabaseAsync().ConfigureAwait(false);
@@ -97,7 +117,6 @@
                 .Where(f => f.TenantId == tenantId && f.UserId == userId);
 
             var match = lookupQuery.ToList();
-
             return match.FirstOrDefault();
         }
 

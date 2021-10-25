@@ -19,7 +19,7 @@
 
         public override string ToString()
         {
-            return $"Team - Id = {this.TeamId}, Name = {this.Teamname}, TenantId = {this.TenantId}, ServiceUrl = {this.ServiceUrl}";
+            return $"TeamId = {this.TeamId}, Name = {this.Teamname}, TenantId = {this.TenantId}, ServiceUrl = {this.ServiceUrl}, Id = {this.Id}";
         }
     }
 }
