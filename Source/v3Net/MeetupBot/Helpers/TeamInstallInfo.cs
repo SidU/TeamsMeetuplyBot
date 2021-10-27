@@ -1,6 +1,6 @@
 ﻿namespace MeetupBot.Helpers
 {
-    using Microsoft.Azure.Documents;
+	using Microsoft.Azure.Documents;
     using Newtonsoft.Json;
 
     public class TeamInstallInfo : Document
@@ -17,9 +17,22 @@
         [JsonProperty("serviceUrl")]
         public string ServiceUrl { get; set; }
 
-        public override string ToString()
-        {
-            return $"TeamId = {this.TeamId}, Name = {this.Teamname}, TenantId = {this.TenantId}, ServiceUrl = {this.ServiceUrl}, Id = {this.Id}";
-        }
-    }
+        [JsonProperty("pairingStatus")]
+        public string PairingStatus { get; set; }
+
+        [JsonProperty("lastPairedAtUTC")]
+        public string LastPairedAtUTC { get; set; }
+
+		public override string ToString()
+		{
+			return $"Name = {this.Teamname}, TeamId = {this.TeamId}, Id = {this.Id}, PairingStatus = {this.PairingStatus}, LastPairedOn = {this.LastPairedAtUTC}";
+		}
+	}
+
+	public enum PairingStatus
+	{
+		New,
+        Pairing,
+		Paired
+	}
 }

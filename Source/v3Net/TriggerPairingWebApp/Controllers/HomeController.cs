@@ -1,28 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
+using Newtonsoft.Json;
 using TriggerPairingWebApp.Models;
 
 namespace TriggerPairingWebApp.Controllers
 {
     public class HomeController : Controller
     {
-        private static TeamViewModel ViewModel;
-
         // GET: Home
         public ActionResult Index()
         {
-            var teamsInfoList = TeamInfo.GetAllTeams();
+            var teamsInfoList = TeamsDataProvider.GetAllTeams();
             var teamsSelectList = teamsInfoList.Select(t => new SelectListItem
             {
                 Text = t.Teamname,
                 Value = t.Id
             });
 
-            ViewModel = new TeamViewModel
+            var ViewModel = new TeamViewModel
             {
                 AllTeams = new SelectList(teamsSelectList, "Value", "Text")
             };
@@ -40,7 +40,8 @@ namespace TriggerPairingWebApp.Controllers
             webRequest.ContentLength = 0;
             webRequest.GetResponse();
 
-            return View(ViewModel);
+            // go back to home page
+            return Redirect("~/");
         }
 
         public ActionResult About()

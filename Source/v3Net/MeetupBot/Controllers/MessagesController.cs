@@ -7,7 +7,8 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
-    using Microsoft.Bot.Connector;
+	using global::MeetupBot.Helpers;
+	using Microsoft.Bot.Connector;
     using Microsoft.Bot.Connector.Teams;
     using Microsoft.Bot.Connector.Teams.Models;
     using Properties;  
@@ -43,15 +44,15 @@
                     if (optOutRequst || string.Equals(activity.Text, "optout", StringComparison.InvariantCultureIgnoreCase))
                     {
                         System.Diagnostics.Trace.TraceInformation($"Received an Opt-out request");
-                        
-                        await MeetupBot.OptOutUser(activity.GetChannelData<TeamsChannelData>().Tenant.Id, senderAadId, senderName, activity.ServiceUrl);
+
+                        await MeetupBot.OptOutUser(activity.GetChannelData<TeamsChannelData>().Tenant.Id, senderAadId, senderName);
                         replyText = Resources.OptOutConfirmation;
                     }
                     else if (string.Equals(activity.Text, "optin", StringComparison.InvariantCultureIgnoreCase))
                     {
                         System.Diagnostics.Trace.TraceInformation($"Received an Opt-in request");
 
-                        await MeetupBot.OptInUser(activity.GetChannelData<TeamsChannelData>().Tenant.Id, senderAadId, senderName, activity.ServiceUrl);
+                        await MeetupBot.OptInUser(activity.GetChannelData<TeamsChannelData>().Tenant.Id, senderAadId, senderName);
                         replyText = Resources.OptInConfirmation;
                     }
                     else
@@ -117,7 +118,16 @@
                                 // we were just added to team
                                 System.Diagnostics.Trace.TraceInformation($"Bot added to the Team: [{channelData.Team.Name}]");
 
-                                await MeetupBot.SaveAddedToTeam(message.ServiceUrl, message.Conversation.Id, channelData.Tenant.Id, channelData.Team.Name);
+                                var teamInfo = new TeamInstallInfo()
+                                {
+                                    TeamId = message.Conversation.Id,
+                                    Teamname = channelData.Team.Name,
+                                    TenantId = channelData.Tenant.Id,
+                                    ServiceUrl = message.ServiceUrl,
+                                    PairingStatus = PairingStatus.New.ToString(),
+                                    LastPairedAtUTC = "New Team"
+                                };
+                                await MeetupBot.SaveTeam(teamInfo, TeamUpdateType.Add);
                                 // TODO: post activity.from has who added the bot. Can record it in schema.
                             }
                             else if (!string.IsNullOrEmpty(memberId)) // If I wasn't added or removed, then someome else must have been added to team
@@ -141,7 +151,14 @@
                             {
                                 // we were just removed from a team
                                 System.Diagnostics.Trace.TraceInformation($"Bot removed from the team: [{channelData.Team.Name}]");
-                                await MeetupBot.SaveRemoveFromTeam(message.ServiceUrl, message.Conversation.Id, channelData.Tenant.Id, channelData.Team.Name);
+                                var teamInfo = new TeamInstallInfo()
+                                {
+                                    TeamId = message.Conversation.Id,
+                                    Teamname = channelData.Team.Name,
+                                    TenantId = channelData.Tenant.Id,
+                                    ServiceUrl = message.ServiceUrl,
+                                };
+                                await MeetupBot.SaveTeam(teamInfo, TeamUpdateType.Remove);
                             }
                         }
                     }

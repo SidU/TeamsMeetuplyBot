@@ -10,22 +10,23 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
+	using System.Threading;
+	using System.Threading.Tasks;
 
     public static class MeetupBot
     {
         public static async Task<int> MakePairsAndNotify(string teamId)
         {
-            // Find the team with this team id.
-            //     Get all members in the team
-            //     Remove the members who have opted out of pairs
-            //     Match each member with someone else
-            //     Save this pair
-            //     Add the member to DB if not already done
-            // Now notify each pair found in 1:1 and ask them to reach out to the other person
-            // When contacting the user in 1:1, give them the button to opt-out.
+			// Find the team with this team id.
+			//     Get all members in the team
+			//     Remove the members who have opted out of pairing
+			//     Match each member with someone else
+			//     Save this pair
+			//     Add the member to DB if not already done
+			// Now notify each pair found in 1:1 and ask them to reach out to the other person
+			// When contacting the user in 1:1, give them the button to opt-out.
 
-            TeamInstallInfo team = new TeamInstallInfo();
+			TeamInstallInfo team = new TeamInstallInfo();
 
             var teams = await GetTeamsInfoAsync().ConfigureAwait(false);
             team = teams.FirstOrDefault(t => t.Id == teamId);
@@ -38,6 +39,8 @@
 
             System.Diagnostics.Trace.TraceInformation($"Found Team: [{team}]");
 
+            await SetTeamPairingStatusAsync(team, PairingStatus.Pairing);
+            
             // Use this if you want to skip the OXO Lets Meet official team for testing
 #if !PAIR_MAIN_TEAM
             if (string.Equals(team.Id, "e2f160f7-2ef5-43b1-98a5-238839fba0ec", StringComparison.OrdinalIgnoreCase))
@@ -58,10 +61,13 @@
                 // This gets the opted in users from Database plus the new members in the team.
                 var optedInUsers = await GetOptedInUsers(team, optInStatuses);
 
-                foreach (var pair in MakePairs(optedInUsers, optInStatuses).Take(maxPairUpsPerTeam))
+                var pairs = (await MakePairsAsync(team, optedInUsers, optInStatuses)).Take(maxPairUpsPerTeam);
+
+                foreach (var pair in pairs)
                 {
                     await NotifyPair(team.ServiceUrl, team.TenantId, team.Teamname, pair).ConfigureAwait(false);
-                    await MeetupBotDataProvider.StorePairup(team.TenantId, optInStatuses, pair.Item1.ObjectId, pair.Item2.ObjectId, pair.Item1.Name, pair.Item2.Name).ConfigureAwait(false);
+                    await MeetupBotDataProvider.StorePairup(team.TenantId, optInStatuses, pair.Item1.ObjectId, 
+                        pair.Item2.ObjectId, pair.Item1.Name, pair.Item2.Name).ConfigureAwait(false);
 
                     countPairsNotified++;
                 }
@@ -172,7 +178,11 @@
 
                 var isTesting = Boolean.Parse(CloudConfigurationManager.GetSetting("Testing"));
 
-                if (! isTesting)
+                if (isTesting)
+				{
+                    System.Diagnostics.Trace.TraceInformation($"Skip sending notification to [{user.Name}] in testing mode");
+                }
+                else
                 {
                     // shoot the activity over
                     // added try catch because if user has set "Block conversations with bots"
@@ -186,31 +196,22 @@
                         System.Diagnostics.Trace.TraceError($"Failed to notify user due to error {uae.ToString()}");
                     }
                 }
-                else
-                {
-                    System.Diagnostics.Trace.TraceInformation($"Skip sending notification to [{user.Name}] in testing mode");
-                }
             }
         }
-
-        public static async Task SaveAddedToTeam(string serviceUrl, string teamId, string tenantId, string teamName)
+        
+        public static async Task SaveTeam(TeamInstallInfo teamInfo, TeamUpdateType status)
         {
-            await MeetupBotDataProvider.SaveTeamInstallStatus(new TeamInstallInfo() { ServiceUrl = serviceUrl, TeamId = teamId, TenantId = tenantId, Teamname = teamName }, true);
+            await MeetupBotDataProvider.SaveTeamStatusAsync(teamInfo, status);
         }
 
-        public static async Task SaveRemoveFromTeam(string serviceUrl, string teamId, string tenantId, string teamName)
+        public static async Task OptOutUser(string tenantId, string userId, string userName)
         {
-            await MeetupBotDataProvider.SaveTeamInstallStatus(new TeamInstallInfo() { ServiceUrl = serviceUrl, TeamId = teamId, TenantId = tenantId, Teamname = teamName }, false);
+            await MeetupBotDataProvider.SetUserOptInStatus(tenantId, userId, userName, false);
         }
 
-        public static async Task OptOutUser(string tenantId, string userId, string userName, string serviceUrl)
+        public static async Task OptInUser(string tenantId, string userId, string userName)
         {
-            await MeetupBotDataProvider.SetUserOptInStatus(tenantId, userId, userName, false, serviceUrl);
-        }
-
-        public static async Task OptInUser(string tenantId, string userId, string userName, string serviceUrl)
-        {
-            await MeetupBotDataProvider.SetUserOptInStatus(tenantId, userId, userName, true, serviceUrl);
+            await MeetupBotDataProvider.SetUserOptInStatus(tenantId, userId, userName, true);
         }
 
         private static async Task<TeamsChannelAccount[]> GetTeamMembers(string serviceUrl, string teamId, string tenantId)
@@ -248,36 +249,61 @@
             return optedInUsers;
         }
 
-        private static List<Tuple<TeamsChannelAccount, TeamsChannelAccount>> MakePairs(List<TeamsChannelAccount> incomingUsers, Dictionary<string, UserOptInInfo> optInInfo)
+        private static async Task<List<Tuple<TeamsChannelAccount, TeamsChannelAccount>>> MakePairsAsync(TeamInstallInfo team, List<TeamsChannelAccount> incomingUsers, Dictionary<string, UserOptInInfo> optInInfo)
         {
             System.Diagnostics.Trace.TraceInformation($"Making pairs for [{incomingUsers.Count}] users.");
 
+            // Update Team Status to Pairing
+            await SetTeamPairingStatusAsync(team, PairingStatus.Pairing);
+
             int attempts = 0;
             int maxAttempts = 5;
-
+			List<Tuple<TeamsChannelAccount, TeamsChannelAccount>> pairs;
+			
             // For Pairing, we only look ahead on the users list. So it is possible we have already met all ahead of us but none behind us.
-            // Another Attemt with shuffling the users solves that problem.
-            while (attempts < maxAttempts)
-            {
-                attempts++;
-                System.Diagnostics.Trace.TraceInformation($"Attempt [{attempts}] to make pairs. Max Attempts: [{maxAttempts}]");
+			// Another Attemt with shuffling the users solves that problem.
+			while (attempts < maxAttempts)
+			{
+				attempts++;
+				System.Diagnostics.Trace.TraceInformation($"Attempt [{attempts}] to make pairs. Max Attempts: [{maxAttempts}]");
 
-                // Deep copy the users so we can mess with the list
-                var users = JsonConvert.DeserializeObject<List<TeamsChannelAccount>>(JsonConvert.SerializeObject(incomingUsers));
-                var pairs = MakePairsInternal(users, optInInfo);
+				// Deep copy the users so we can mess with the list
+				var users = JsonConvert.DeserializeObject<List<TeamsChannelAccount>>(JsonConvert.SerializeObject(incomingUsers));
+				pairs = MakePairsInternal(users, optInInfo);
 
-                if (pairs != null)
-                {
-                    return pairs;
-                }
+				if (pairs != null)
+				{
+					await SetTeamPairingStatusAsync(team, PairingStatus.Paired);
+					return pairs;
+				}
 
-                System.Diagnostics.Trace.TraceWarning($"Attempt [{attempts}] failed. Retrying until Max attempts = [{maxAttempts}]");
-            }
+				System.Diagnostics.Trace.TraceWarning($"Attempt [{attempts}] failed. Retrying until Max attempts = [{maxAttempts}]");
+			}
 
-            return MakePairsInternal(incomingUsers, optInInfo, canTryAgain: false);
+			pairs = MakePairsInternal(incomingUsers, optInInfo, canTryAgain: false);
+            await SetTeamPairingStatusAsync (team, PairingStatus.Paired);
+
+            return pairs;
         }
 
-        private static List<Tuple<TeamsChannelAccount, TeamsChannelAccount>> MakePairsInternal(List<TeamsChannelAccount> users, Dictionary<string, UserOptInInfo> optInInfo, bool canTryAgain = true)
+		private static async Task SetTeamPairingStatusAsync(TeamInstallInfo team, PairingStatus status)
+		{
+            // Create a new team object as CosmosDB does not like updating the existing one.
+            var updatedTeam = new TeamInstallInfo
+            {
+                Id = team.Id,
+                TeamId = team.TeamId,
+                Teamname = team.Teamname,
+                TenantId = team.TenantId,
+                ServiceUrl = team.ServiceUrl,
+                PairingStatus = status.ToString(),
+                LastPairedAtUTC = status == PairingStatus.Paired ? DateTime.Now.ToString() : team.LastPairedAtUTC
+            };
+
+            _ = await MeetupBotDataProvider.SaveTeamStatusAsync(updatedTeam, TeamUpdateType.PairingInfo);
+        }
+
+		private static List<Tuple<TeamsChannelAccount, TeamsChannelAccount>> MakePairsInternal(List<TeamsChannelAccount> users, Dictionary<string, UserOptInInfo> optInInfo, bool canTryAgain = true)
         {
             var pairs = new List<Tuple<TeamsChannelAccount, TeamsChannelAccount>>();
 

@@ -180,7 +180,8 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Models\TeamInfo.cs" />
+    <Compile Include="Models\TeamInstallInfo.cs" />
+    <Compile Include="Models\TeamsDataProvider.cs" />
     <Compile Include="Models\TeamViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
