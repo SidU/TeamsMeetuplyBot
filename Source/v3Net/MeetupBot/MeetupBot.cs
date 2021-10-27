@@ -41,7 +41,7 @@
 
             await SetTeamPairingStatusAsync(team, PairingStatus.Pairing);
             
-            // Use this if you want to skip the OXO Lets Meet official team for testing
+            // Comment this if you want to run pairing in OXO Lets Meet official team
 #if !PAIR_MAIN_TEAM
             if (string.Equals(team.Id, "e2f160f7-2ef5-43b1-98a5-238839fba0ec", StringComparison.OrdinalIgnoreCase))
             {
