@@ -71,6 +71,8 @@
 
                     countPairsNotified++;
                 }
+
+                await SetTeamPairingStatusAsync(team, PairingStatus.Paired);
             }
             catch (UnauthorizedAccessException uae)
             {
@@ -273,7 +275,6 @@
 
 				if (pairs != null)
 				{
-					await SetTeamPairingStatusAsync(team, PairingStatus.Paired);
 					return pairs;
 				}
 
@@ -281,8 +282,7 @@
 			}
 
 			pairs = MakePairsInternal(incomingUsers, optInInfo, canTryAgain: false);
-            await SetTeamPairingStatusAsync (team, PairingStatus.Paired);
-
+            
             return pairs;
         }
 
