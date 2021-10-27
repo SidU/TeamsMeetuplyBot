@@ -76,7 +76,7 @@
             {
                 System.Diagnostics.Trace.TraceError($"Failed to process a team: {team.ToString()} due to error {uae.ToString()}");
             }
-
+            
             System.Diagnostics.Trace.TraceInformation($"{countPairsNotified} pairs notified");
             return countPairsNotified;
         }

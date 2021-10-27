@@ -16,17 +16,25 @@
     <table class="table">
         <tr>
             <th>Team Name</th>
-            <th>Team Id</th>
+            <th>Member count</th>
+            <th>Pairing Status</th>
+            <th>Last Paired on</th>
         </tr>
 
-        @foreach (var team in Model.AllTeams)
+        @foreach (var team in Model.AllTeamsInfo)
         {
             <tr>
                 <td>
-                    @Html.DisplayFor(modelItem => team.Text)
+                    @Html.DisplayFor(modelItem => team.Teamname)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => team.Value)
+                    @Html.DisplayFor(modelItem => team.MemberCount)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => team.PairingStatus)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => team.LastPairedAtUTC)
                 </td>
             </tr>
         }
@@ -43,7 +51,7 @@
                 @Html.DropDownListFor(t => t.SelectedTeamId, Model.AllTeams, "--Select Team--")
                 <br />
                 <br />
-                <button type="submit" name="action">Submit</button>
+                <button type="submit" name="action" onclick="return confirm('Are you sure you want to trigger Pairing and notifications?')">Submit</button>
             }
         </div>
     </div>

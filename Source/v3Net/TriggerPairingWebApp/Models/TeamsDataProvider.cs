@@ -10,7 +10,7 @@ namespace TriggerPairingWebApp.Models
 {
 	public class TeamsDataProvider
 	{
-        public static List<TeamInstallInfo> GetAllTeams()
+        public static List<TeamInfo> GetAllTeams()
         {
             // get all 
             WebRequest webRequest = WebRequest.Create($"https://meetupbotappservice.azurewebsites.net/api/processnow");
@@ -20,7 +20,7 @@ namespace TriggerPairingWebApp.Models
             using (StreamReader reader = new StreamReader(response.GetResponseStream()))
             {
                 string json = reader.ReadToEnd();
-                return JsonConvert.DeserializeObject<List<TeamInstallInfo>>(json);
+                return JsonConvert.DeserializeObject<List<TeamInfo>>(json);
             }
         }
     }
