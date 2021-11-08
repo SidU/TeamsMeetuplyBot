@@ -32,23 +32,22 @@
             team = teams.FirstOrDefault(t => t.Id == teamId);
 
             if (team == null)
-			{
+		        {
                 System.Diagnostics.Trace.TraceError($"No team found with Id: [{teamId}]. Return.");
                 return -1;
             }
 
             System.Diagnostics.Trace.TraceInformation($"Found Team: [{team}]");
 
+            // Uncomment this if you want to run pairing in OXO Lets Meet official team
+            // if (string.Equals(team.Id, "e2f160f7-2ef5-43b1-98a5-238839fba0ec", StringComparison.OrdinalIgnoreCase))
+            // {
+            //    System.Diagnostics.Trace.TraceInformation($"Skipping Pairing for Team: [{team}].");
+            //    return -1;
+            // }
+
             await SetTeamPairingStatusAsync(team, PairingStatus.Pairing);
-            
-            // Comment this if you want to run pairing in OXO Lets Meet official team
-#if !PAIR_MAIN_TEAM
-            if (string.Equals(team.Id, "e2f160f7-2ef5-43b1-98a5-238839fba0ec", StringComparison.OrdinalIgnoreCase))
-            {
-                System.Diagnostics.Trace.TraceInformation($"Skipping Pairing for Team: [{team}].");
-                return -1;
-            }
-#endif
+
             System.Diagnostics.Trace.TraceInformation($"Creating Pairs...");
             var countPairsNotified = 0;
             var maxPairUpsPerTeam = Convert.ToInt32(CloudConfigurationManager.GetSetting("MaxPairUpsPerTeam"));
