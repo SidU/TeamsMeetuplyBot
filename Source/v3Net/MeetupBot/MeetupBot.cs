@@ -28,7 +28,7 @@
 
 			TeamInstallInfo team = new TeamInstallInfo();
 
-            var teams = await GetTeamsInfoAsync().ConfigureAwait(false);
+            List<TeamInstallInfo> teams = await GetTeamsInfoAsync().ConfigureAwait(false);
             team = teams.FirstOrDefault(t => t.Id == teamId);
 
             if (team == null)
@@ -38,13 +38,6 @@
             }
 
             System.Diagnostics.Trace.TraceInformation($"Found Team: [{team}]");
-
-            // Uncomment this if you want to run pairing in OXO Lets Meet official team
-            // if (string.Equals(team.Id, "e2f160f7-2ef5-43b1-98a5-238839fba0ec", StringComparison.OrdinalIgnoreCase))
-            // {
-            //    System.Diagnostics.Trace.TraceInformation($"Skipping Pairing for Team: [{team}].");
-            //    return -1;
-            // }
 
             await SetTeamPairingStatusAsync(team, PairingStatus.Pairing);
 
