@@ -11,6 +11,7 @@
 	public static class MeetupBotDataProvider
 	{
 		private static DocumentClient documentClient;
+		private static bool isTesting;
 
 		public static async Task InitDatabaseAsync()
 		{
@@ -21,12 +22,21 @@
 				var primaryKey = await SecretsHelper.GetSecretAsync(secretName).ConfigureAwait(false);
 
 				documentClient = new DocumentClient(new Uri(endpointUrl), primaryKey);
+
+				isTesting = Boolean.Parse(CloudConfigurationManager.GetSetting("Testing"));
 			}
 		}
 
 		public static async Task<TeamInstallInfo> SaveTeamStatusAsync(TeamInstallInfo team, TeamUpdateType status)
 		{
 			System.Diagnostics.Trace.TraceInformation($"Update info for team: [{team}] in DB");
+
+			if (isTesting)
+			{
+				System.Diagnostics.Trace.TraceInformation($"Skip updating DB in testing mode");
+				return team;
+			}
+
 			await InitDatabaseAsync().ConfigureAwait(false);
 
 			var databaseName = CloudConfigurationManager.GetSetting("CosmosDBDatabaseName");
@@ -184,16 +194,7 @@
 				UserFullName = userName
 			};
 
-			var isTesting = Boolean.Parse(CloudConfigurationManager.GetSetting("Testing"));
-			if (isTesting)
-			{
-				System.Diagnostics.Trace.TraceInformation($"Skip updating DB in testing mode");
-			}
-			else
-			{
-				userInfo = await StoreUserOptInStatus(userInfo);
-			}
-
+			userInfo = await StoreUserOptInStatus(userInfo);
 			return userInfo;
 		}
 
@@ -262,16 +263,16 @@
 				user2Info.RecentPairUps.RemoveAt(0);
 			}
 
-			var isTesting = Boolean.Parse(CloudConfigurationManager.GetSetting("Testing"));
+			System.Diagnostics.Trace.TraceInformation($"Updating the pair : [{userFullName1}] and [{userFullName2}] in DB");
+
 			if (isTesting)
 			{
-				System.Diagnostics.Trace.TraceInformation($"Skip storing pair [{userId1}] and [{userId2}] to DB in Testing mode");
+				System.Diagnostics.Trace.TraceInformation($"Skip storing pair to DB in Testing mode");
 			}
 			else
 			{
 				await StoreUserOptInStatus(user1Info).ConfigureAwait(false);
 				await StoreUserOptInStatus(user2Info).ConfigureAwait(false);
-				System.Diagnostics.Trace.TraceInformation($"Updating the pair : [{userFullName1}] and [{userFullName2}] in DB");
 			}
 
 			return true;
@@ -282,6 +283,12 @@
 			await InitDatabaseAsync().ConfigureAwait(false);
 
 			System.Diagnostics.Trace.TraceInformation($"Set Optin info for user: [{userInfo.UserFullName}] to {userInfo.OptedIn} in DB");
+
+			if (isTesting)
+			{
+				System.Diagnostics.Trace.TraceInformation($"Skip updating DB in testing mode");
+				return userInfo;
+			}
 
 			var databaseName = CloudConfigurationManager.GetSetting("CosmosDBDatabaseName");
 			var collectionName = CloudConfigurationManager.GetSetting("CosmosCollectionUsers");
