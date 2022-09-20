@@ -24,7 +24,7 @@
     </NuGetPackageImportStamp>
     <TargetFrameworkProfile />
     <Use64BitIISExpress />
-    <ApplicationInsightsResourceId>/subscriptions/fc7ebf7d-b3ae-45c2-9c08-67d0ae8ce012/resourcegroups/Default-ApplicationInsights-EastUS/providers/microsoft.insights/components/MeetupBot</ApplicationInsightsResourceId>
+    <ApplicationInsightsResourceId>/subscriptions/6fbb3b9f-b6a5-4bfa-b035-cf8079dcf103/resourceGroups/Ango-letsmeet/providers/microsoft.insights/components/MeetupBotAI</ApplicationInsightsResourceId>
     <ApplicationInsightsAnnotationResourceId>/subscriptions/fc7ebf7d-b3ae-45c2-9c08-67d0ae8ce012/resourcegroups/Default-ApplicationInsights-EastUS/providers/microsoft.insights/components/MeetupBot</ApplicationInsightsAnnotationResourceId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

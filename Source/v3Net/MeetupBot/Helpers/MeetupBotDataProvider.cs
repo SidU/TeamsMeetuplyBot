@@ -112,14 +112,14 @@
 			// Find matching activities
 			var lookupQuery = documentClient.CreateDocumentQuery<TeamInstallInfo>(
 				UriFactory.CreateDocumentCollectionUri(databaseName, collectionName), queryOptions)
-				 .Where(t => t.TeamId == teamId);
+				 .Where(t => t.Id == teamId);
 
 			var match = lookupQuery.ToList();
 			System.Diagnostics.Trace.TraceInformation($"Found [{match.Count}] matches");
 			return match.FirstOrDefault();
 		}
 
-		public static async Task<List<TeamInstallInfo>> GetInstalledTeamsAsync()
+		public static async Task<List<TeamInstallInfo>> GetAllTeamsInfoAsync()
 		{
 			await InitDatabaseAsync().ConfigureAwait(false);
 

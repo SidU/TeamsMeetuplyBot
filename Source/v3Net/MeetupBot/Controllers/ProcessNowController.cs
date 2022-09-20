@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Hosting;
 using System.Web.Http;
@@ -12,36 +13,42 @@ namespace MeetupBot.Controllers
         [Route("api/processnow")]
         public List<TeamInstallInfo> Get()
         {
-            return MeetupBot.GetTeamsInfoAsync().Result;
+            return MeetupBot.GetAllTeamsInfoAsync().Result;
         }
 
         // GET api/<controller>/5
-        [Route("api/processnow/{key}")]
-        public string Get([FromUri] string key)
+        [Route("api/processnow/{teamId}")]
+        public Task<TeamInstallInfo> Get([FromUri] string teamId)
         {
-            return $"Not Yet Implemented. key: [{key}]";
+            if (string.IsNullOrEmpty(teamId))
+            {
+                System.Diagnostics.Trace.TraceError($"Received Invalid TeamId. Do not do anything.");
+                return null;
+            }
+            else
+            {
+                return MeetupBot.GetTeamInfoAsync(teamId);
+            }
         }
 
         // POST api/<controller>/<key>
         [Route("api/processnow/{teamId}")]
         public void Post([FromUri] string teamId)
         {
-            System.Diagnostics.Trace.TraceInformation($"In Post");
             if (string.IsNullOrEmpty(teamId))
 			{
                 System.Diagnostics.Trace.TraceError($"Received Invalid TeamId. Do not do anything.");
             }
             else
 			{
-                HostingEnvironment.QueueBackgroundWorkItem(ct => MakePairs(teamId));
+                HostingEnvironment.QueueBackgroundWorkItem(ct => MakePairsAsync(teamId));
                 return;
             }
         }
 
-        private static async Task<int> MakePairs(string teamId)
+        private static async Task<int> MakePairsAsync(string teamId)
         {
-            System.Diagnostics.Trace.TraceInformation($"Trigger Pairing and send notifications");
-            return await MeetupBot.MakePairsAndNotify(teamId);
+            return await MeetupBot.MakePairsAndNotifyAsync(teamId);
         }
 
     }
