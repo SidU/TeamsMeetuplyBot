@@ -30,5 +30,8 @@ namespace TriggerPairingWebApp.Models
 
         [JsonProperty("memberCount")]
         public string MemberCount { get; set; } = "TODO";
+
+        [JsonProperty("optMode")]
+        public string OptMode { get; set; } = "optin";
     }
 }

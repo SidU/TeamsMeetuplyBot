@@ -19,6 +19,7 @@
             <th>Member count</th>
             <th>Pairing Status</th>
             <th>Last Paired on</th>
+            <th>Opt mode</th>
         </tr>
 
         @foreach (var team in Model.AllTeamsInfo)
@@ -35,6 +36,9 @@
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => team.LastPairedAtUTC)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => team.OptMode ?? "N/A");
                 </td>
             </tr>
         }
