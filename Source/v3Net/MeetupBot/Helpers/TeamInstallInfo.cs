@@ -24,7 +24,11 @@
         public string LastPairedAtUTC { get; set; }
 
         [JsonProperty("optMode")]
-        public string OptMode { get; set; } = "optin";
+        public string OptMode { get; set; } = OptInMode;
+
+        public const string OptInMode = "optin";
+
+        public const string OptOutMode = "optout";
 
 		public override string ToString()
 		{

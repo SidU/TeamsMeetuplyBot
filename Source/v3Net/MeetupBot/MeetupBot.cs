@@ -246,7 +246,9 @@
                 var isBot = string.IsNullOrEmpty(member.Surname);
                 optInInfo.TryGetValue(member.ObjectId, out UserOptInInfo optInStatus);
 
-                if ((optInStatus == null || optInStatus.OptedIn) && !isBot)
+                if (!isBot && 
+                    teamInfo.OptMode.Equals(TeamInstallInfo.OptInMode) &&
+                    (optInStatus == null || optInStatus.OptedIn))
                 {
                     optedInUsers.Add(member);
                 }
